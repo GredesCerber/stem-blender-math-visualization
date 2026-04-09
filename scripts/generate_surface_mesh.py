@@ -1,119 +1,80 @@
 """
 generate_surface_mesh.py
 ========================
-Учебный STEM-проект: Интерактивная 3D-визуализация математических функций
-Павлодарский педагогический университет
+Учебный STEM-проект: Интерактивная 3D-визуализация математических функций.
 
-НАЗНАЧЕНИЕ:
-    Скрипт создаёт полигональную сетку (mesh) в Blender, представляющую
-    поверхность z = f(x, y) для выбранной математической функции.
-
-КАК ЗАПУСТИТЬ:
-    1. Откройте Blender 3.6+.
-    2. Перейдите во вкладку "Scripting" (верхняя строка вкладок).
-    3. Нажмите "Open" и выберите этот файл — или вставьте содержимое вручную.
-    4. Измените параметры в блоке "ПАРАМЕТРЫ" ниже.
-    5. Нажмите ▶ "Run Script" (или Alt+P).
-    6. В 3D-вьюпорте появится объект "MathSurface".
-
-ИЗМЕНИТЬ ФУНКЦИЮ:
-    Установите FUNCTION_NAME = "wave" | "paraboloid" | "saddle" |
-                                       "ripple" | "gaussian" | "custom"
-    При выборе "custom" — напишите свою формулу в функции f_custom(x, y).
+Скрипт строит полигональную сетку для поверхности z = f(x, y).
+Запуск в Blender создаёт объект в сцене, запуск вне Blender делает
+текстовый preview нескольких значений функции.
 """
 
-import bpy
-import bmesh
+from __future__ import annotations
+
 import math
+from collections.abc import Callable
+
+try:
+    import bpy
+    import bmesh
+
+    HAS_BPY = True
+except ImportError:
+    HAS_BPY = False
+    print("[INFO] bpy не найден — запуск вне Blender (только preview формулы)")
 
 
 # ============================================================
-# ПАРАМЕТРЫ: меняйте здесь!
+# ПАРАМЕТРЫ
 # ============================================================
 
-# Диапазон по осям X и Y
 X_MIN: float = -5.0
 X_MAX: float = 5.0
 Y_MIN: float = -5.0
 Y_MAX: float = 5.0
 
-# Количество делений сетки по каждой оси (N×N вершин)
-# Рекомендация: 40–80 для плавного вида, 20 — для быстрого теста
 RESOLUTION: int = 60
-
-# Амплитуда (A) — влияет на высоту «гребней» и «впадин»
 AMPLITUDE: float = 1.0
-
-# Частота (k) — влияет на количество повторений волны
 FREQUENCY: float = 1.0
-
-# Ширина гауссиана (σ) — только для функции "gaussian"
 SIGMA: float = 2.0
 
-# Выбор функции: "paraboloid" | "saddle" | "wave" | "ripple" | "gaussian" | "custom"
+# "paraboloid" | "saddle" | "wave" | "ripple" | "gaussian" | "custom"
 FUNCTION_NAME: str = "wave"
-
-# Имя объекта в Blender (предыдущий объект с таким именем будет удалён)
 OBJECT_NAME: str = "MathSurface"
+
 
 # ============================================================
 # ФУНКЦИИ z = f(x, y)
 # ============================================================
 
+SurfaceFunction = Callable[[float, float], float]
+
 
 def f_paraboloid(x: float, y: float) -> float:
-    """Параболоид вращения: z = x² + y²
-    Форма: «чаша», минимум в точке (0, 0, 0).
-    """
     return x**2 + y**2
 
 
 def f_saddle(x: float, y: float) -> float:
-    """Гиперболический параболоид (седло): z = x² - y²
-    Форма: «седло» — вогнутый вдоль X, выпуклый вдоль Y.
-    Седловая точка в (0, 0, 0).
-    """
     return x**2 - y**2
 
 
 def f_wave(x: float, y: float) -> float:
-    """Тригонометрическая волна: z = A * sin(k*x) * cos(k*y)
-    Параметры: AMPLITUDE (A), FREQUENCY (k).
-    """
     return AMPLITUDE * math.sin(FREQUENCY * x) * math.cos(FREQUENCY * y)
 
 
 def f_ripple(x: float, y: float) -> float:
-    """Радиальная волна (воронка): z = A * sin(sqrt(x² + y²))
-    Форма: концентрические кольца вокруг начала координат.
-    """
-    r = math.sqrt(x**2 + y**2)
-    return AMPLITUDE * math.sin(r)
+    radius = math.sqrt(x**2 + y**2)
+    return AMPLITUDE * math.sin(radius)
 
 
 def f_gaussian(x: float, y: float) -> float:
-    """Гауссова поверхность (колокол): z = A * exp(-(x² + y²) / σ²)
-    Форма: гладкий купол с максимумом в (0, 0, A).
-    Параметры: AMPLITUDE (A), SIGMA (σ).
-    """
     return AMPLITUDE * math.exp(-(x**2 + y**2) / (SIGMA**2))
 
 
 def f_custom(x: float, y: float) -> float:
-    """Пользовательская функция — измените формулу здесь!
-    Примеры:
-        return math.sin(x) + math.cos(y)
-        return math.sin(x * y)
-        return x * math.exp(-(x**2 + y**2))
-    """
     return math.sin(x) + math.cos(y)
 
 
-# ============================================================
-# ВЫБОР АКТИВНОЙ ФУНКЦИИ
-# ============================================================
-
-FUNCTION_MAP: dict = {
+FUNCTION_MAP: dict[str, SurfaceFunction] = {
     "paraboloid": f_paraboloid,
     "saddle": f_saddle,
     "wave": f_wave,
@@ -122,52 +83,78 @@ FUNCTION_MAP: dict = {
     "custom": f_custom,
 }
 
-if FUNCTION_NAME not in FUNCTION_MAP:
-    raise ValueError(
-        f"Неизвестная функция: '{FUNCTION_NAME}'. "
-        f"Допустимые значения: {list(FUNCTION_MAP.keys())}"
-    )
 
-f = FUNCTION_MAP[FUNCTION_NAME]
+# ============================================================
+# ВАЛИДАЦИЯ И ВЫБОР ФУНКЦИИ
+# ============================================================
+
+def validate_parameters() -> None:
+    if RESOLUTION < 2:
+        raise ValueError("RESOLUTION должен быть >= 2.")
+    if X_MAX <= X_MIN:
+        raise ValueError("X_MAX должен быть больше X_MIN.")
+    if Y_MAX <= Y_MIN:
+        raise ValueError("Y_MAX должен быть больше Y_MIN.")
+    if FUNCTION_NAME == "gaussian" and SIGMA <= 0:
+        raise ValueError("SIGMA должен быть > 0 для гауссовой функции.")
+
+    numeric_params = {
+        "X_MIN": X_MIN,
+        "X_MAX": X_MAX,
+        "Y_MIN": Y_MIN,
+        "Y_MAX": Y_MAX,
+        "AMPLITUDE": AMPLITUDE,
+        "FREQUENCY": FREQUENCY,
+        "SIGMA": SIGMA,
+    }
+    for name, value in numeric_params.items():
+        if not math.isfinite(value):
+            raise ValueError(f"{name} должен быть конечным числом.")
+
+
+def get_surface_function(function_name: str) -> SurfaceFunction:
+    if function_name not in FUNCTION_MAP:
+        allowed = ", ".join(FUNCTION_MAP.keys())
+        raise ValueError(
+            f"Неизвестная функция '{function_name}'. Допустимые значения: {allowed}."
+        )
+    return FUNCTION_MAP[function_name]
 
 
 # ============================================================
 # ПОСТРОЕНИЕ СЕТКИ (MESH)
 # ============================================================
 
-
 def build_surface_vertices(
-    f_func,
+    f_func: SurfaceFunction,
     x_min: float,
     x_max: float,
     y_min: float,
     y_max: float,
     n: int,
-) -> tuple[list, list]:
-    """Генерирует вершины и грани для поверхности z = f(x, y).
-
-    Алгоритм:
-        1. Делим [x_min, x_max] и [y_min, y_max] на n равных отрезков.
-        2. Для каждой пары (i, j) вычисляем x, y, z = f(x, y).
-        3. Соединяем четыре соседних вершины в квадратный полигон.
-
-    Returns:
-        vertices: список из (n+1)*(n+1) кортежей (x, y, z)
-        faces: список из n*n кортежей-индексов (a, b, c, d)
-    """
+) -> tuple[list[tuple[float, float, float]], list[tuple[int, int, int, int]]]:
     dx = (x_max - x_min) / n
     dy = (y_max - y_min) / n
 
-    vertices = []
+    vertices: list[tuple[float, float, float]] = []
     for i in range(n + 1):
         for j in range(n + 1):
             x = x_min + i * dx
             y = y_min + j * dy
-            z = f_func(x, y)
+            try:
+                z = float(f_func(x, y))
+            except (ValueError, ZeroDivisionError, OverflowError) as exc:
+                raise ValueError(
+                    f"Ошибка вычисления функции в точке (x={x:.4f}, y={y:.4f})."
+                ) from exc
+            if not math.isfinite(z):
+                raise ValueError(
+                    f"Функция вернула некорректное значение z={z} "
+                    f"в точке (x={x:.4f}, y={y:.4f})."
+                )
             vertices.append((x, y, z))
 
-    # Индекс вершины в строке i, столбце j: i*(n+1) + j
-    faces = []
+    faces: list[tuple[int, int, int, int]] = []
     for i in range(n):
         for j in range(n):
             a = i * (n + 1) + j
@@ -179,66 +166,52 @@ def build_surface_vertices(
     return vertices, faces
 
 
-def create_blender_mesh(name: str, vertices: list, faces: list) -> bpy.types.Object:
-    """Создаёт объект Blender с заданными вершинами и гранями.
+def create_blender_mesh(
+    name: str,
+    vertices: list[tuple[float, float, float]],
+    faces: list[tuple[int, int, int, int]],
+) -> "bpy.types.Object":
+    if not HAS_BPY:
+        raise RuntimeError("create_blender_mesh доступен только внутри Blender.")
 
-    Args:
-        name: имя объекта в Blender
-        vertices: список вершин [(x, y, z), ...]
-        faces: список граней [(a, b, c, d), ...]
-
-    Returns:
-        Новый объект Blender (bpy.types.Object)
-    """
-    # Создаём пустой mesh и объект
-    mesh = bpy.data.meshes.new(name=name + "_mesh")
+    mesh = bpy.data.meshes.new(name=f"{name}_mesh")
     obj = bpy.data.objects.new(name=name, object_data=mesh)
-
-    # Добавляем объект в текущую коллекцию сцены
     bpy.context.collection.objects.link(obj)
 
-    # Используем bmesh для заполнения данных
     bm = bmesh.new()
-
-    # Добавляем вершины
-    bm_verts = [bm.verts.new(v) for v in vertices]
-
-    # Обновляем таблицу вершин (обязательно перед созданием граней)
+    bm_verts = [bm.verts.new(vertex) for vertex in vertices]
     bm.verts.ensure_lookup_table()
 
-    # Добавляем грани
     for face_indices in faces:
-        bm.faces.new([bm_verts[i] for i in face_indices])
+        bm.faces.new([bm_verts[index] for index in face_indices])
 
-    # Пересчитываем нормали
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-
-    # Записываем bmesh в mesh Blender
     bm.to_mesh(mesh)
     bm.free()
-
-    # Пересчитываем нормали на уровне mesh (для корректного освещения)
     mesh.calc_normals()
 
     return obj
 
 
 def remove_existing_object(name: str) -> None:
-    """Удаляет объект с заданным именем из сцены, если он существует."""
+    if not HAS_BPY:
+        return
     if name in bpy.data.objects:
         obj = bpy.data.objects[name]
+        mesh = obj.data if getattr(obj, "type", None) == "MESH" else None
         bpy.data.objects.remove(obj, do_unlink=True)
+        if mesh is not None and mesh.users == 0:
+            bpy.data.meshes.remove(mesh)
 
 
-def add_default_material(obj: bpy.types.Object, function_name: str) -> None:
-    """Добавляет простой материал с цветом, зависящим от типа функции."""
+def add_default_material(obj: "bpy.types.Object", function_name: str) -> None:
     color_map = {
-        "paraboloid": (0.2, 0.5, 0.9, 1.0),   # синий
-        "saddle":     (0.2, 0.8, 0.4, 1.0),   # зелёный
-        "wave":       (0.9, 0.5, 0.1, 1.0),   # оранжевый
-        "ripple":     (0.6, 0.2, 0.9, 1.0),   # фиолетовый
-        "gaussian":   (0.9, 0.2, 0.2, 1.0),   # красный
-        "custom":     (0.9, 0.9, 0.2, 1.0),   # жёлтый
+        "paraboloid": (0.2, 0.5, 0.9, 1.0),
+        "saddle": (0.2, 0.8, 0.4, 1.0),
+        "wave": (0.9, 0.5, 0.1, 1.0),
+        "ripple": (0.6, 0.2, 0.9, 1.0),
+        "gaussian": (0.9, 0.2, 0.2, 1.0),
+        "custom": (0.9, 0.9, 0.2, 1.0),
     }
     base_color = color_map.get(function_name, (0.5, 0.5, 0.5, 1.0))
 
@@ -264,36 +237,43 @@ def add_default_material(obj: bpy.types.Object, function_name: str) -> None:
 # ОСНОВНАЯ ЛОГИКА
 # ============================================================
 
+def print_formula_preview(f_func: SurfaceFunction) -> None:
+    print("Preview функции (без Blender):")
+    sample_points = [(-2.0, -2.0), (-1.0, 0.0), (0.0, 0.0), (1.0, 1.0), (2.0, 2.0)]
+    for x, y in sample_points:
+        z = f_func(x, y)
+        print(f"  f({x:5.1f}, {y:5.1f}) = {z:8.4f}")
+
+
 def main() -> None:
-    print(f"\n{'='*50}")
-    print(f"  STEM-проект: Визуализация поверхности")
+    validate_parameters()
+    f_func = get_surface_function(FUNCTION_NAME)
+
+    print(f"\n{'=' * 50}")
+    print("  STEM-проект: Визуализация поверхности")
     print(f"  Функция: {FUNCTION_NAME}")
     print(f"  Разрешение: {RESOLUTION}×{RESOLUTION}")
     print(f"  Область: X=[{X_MIN}, {X_MAX}], Y=[{Y_MIN}, {Y_MAX}]")
-    print(f"{'='*50}\n")
+    print(f"{'=' * 50}\n")
 
-    # Удаляем предыдущий объект (если есть)
+    if not HAS_BPY:
+        print_formula_preview(f_func)
+        return
+
     remove_existing_object(OBJECT_NAME)
+    vertices, faces = build_surface_vertices(f_func, X_MIN, X_MAX, Y_MIN, Y_MAX, RESOLUTION)
+    print(f"  Вершин: {len(vertices)}, граней: {len(faces)}")
 
-    # Строим сетку
-    print("  Генерация вершин и граней...")
-    vertices, faces = build_surface_vertices(f, X_MIN, X_MAX, Y_MIN, Y_MAX, RESOLUTION)
-    print(f"  Вершин: {len(vertices)}, Граней: {len(faces)}")
-
-    # Создаём объект в Blender
-    print("  Создание объекта в Blender...")
     obj = create_blender_mesh(OBJECT_NAME, vertices, faces)
-
-    # Добавляем материал
     add_default_material(obj, FUNCTION_NAME)
 
-    # Сбрасываем выделение и выбираем новый объект
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
     bpy.context.view_layer.objects.active = obj
 
-    print(f"\n  ✓ Объект '{OBJECT_NAME}' создан!")
-    print(f"  Нажмите Numpad . для центровки вида на объект.\n")
+    print(f"\n  ✓ Объект '{OBJECT_NAME}' создан.")
+    print("  Нажмите Numpad . для центровки вида на объект.\n")
 
 
-main()
+if __name__ == "__main__":
+    main()

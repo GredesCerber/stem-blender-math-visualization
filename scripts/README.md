@@ -1,108 +1,43 @@
-# Скрипты / Scripts
+# Скрипты проекта
 
-В этой папке находятся Python-скрипты для работы в Blender.
-
----
+В этой папке находятся Python-скрипты для визуализации математических поверхностей в Blender.
 
 ## Файлы
 
-| Файл | Описание |
+| Файл | Назначение |
 |---|---|
-| `visualize_function.py` | Основной скрипт: генерирует 3D-поверхность по формуле |
+| `visualize_function.py` | Быстрый запуск поверхности `z = f(x, y)` и цветовая карта по высоте |
+| `generate_surface_mesh.py` | Генерация mesh-поверхности с выбором предустановленных функций |
+| `setup_geometry_nodes_surface.py` | Автоматическая настройка Geometry Nodes для волновой поверхности |
 
----
+## Запуск в Blender (рекомендуется)
 
-## Быстрый старт
+1. Откройте Blender.
+2. Перейдите в Workspace **Scripting**.
+3. Нажмите **Open** и выберите нужный скрипт из папки `scripts/`.
+4. Нажмите **Run Script** (или `Alt+P`).
 
-### Вариант 1: запуск в Blender (рекомендуется)
+## Запуск из командной строки
 
-```
-1. Открыть Blender
-2. В верхней панели переключить Workspace на «Scripting»
-3. Нажать «Open» → выбрать scripts/visualize_function.py
-4. Нажать ▶ (Run Script) или Alt+P
-```
-
-Объект «MathSurface» появится в сцене.
-
-### Вариант 2: запуск из командной строки
-
-```bash
-# Linux / macOS:
-blender --background --python scripts/visualize_function.py
-
-# Windows (пример полного пути):
-"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts/visualize_function.py
+```powershell
+"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\visualize_function.py
+"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\generate_surface_mesh.py
+"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\setup_geometry_nodes_surface.py
 ```
 
-> ⚠️ При запуске из командной строки Blender не открывает графический интерфейс.
-> Для рендера добавьте параметры вывода в скрипт или используйте `blender --render-anim`.
+Для `visualize_function.py` поддерживается рендер в PNG:
 
-### Вариант 3: проверка формулы без Blender (только Python)
-
-```bash
-python3 scripts/visualize_function.py
+```powershell
+"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\visualize_function.py -- --output renders\surface.png
 ```
 
-Скрипт напечатает несколько значений функции — удобно проверить формулу перед запуском в Blender.
+## Запуск без Blender
 
----
+- `visualize_function.py` и `generate_surface_mesh.py` в обычном Python печатают preview значений функции.
+- `setup_geometry_nodes_surface.py` вне Blender выводит подсказку и завершает работу без ошибки.
 
-## Как изменить функцию
+## Что менять в первую очередь
 
-Откройте `visualize_function.py` в VS Code. Найдите раздел:
-
-```python
-# === ФОРМУЛА ===
-def surface_function(x: float, y: float) -> float:
-```
-
-Измените тело функции на любую из готовых или напишите свою:
-
-```python
-# Параболоид:
-return x**2 + y**2
-
-# Волновая поверхность:
-A, k = 1.0, 1.0
-return A * math.sin(k * x) * math.cos(k * y)
-
-# Седло:
-return x**2 - y**2
-
-# Гауссов колокол:
-return math.exp(-(x**2 + y**2))
-
-# Круговые волны:
-r = math.sqrt(x**2 + y**2)
-return math.sin(r) if r > 1e-6 else 1.0
-```
-
-Запустите скрипт снова — объект перестроится.
-
----
-
-## Параметры сетки
-
-В файле `visualize_function.py` найдите раздел `# === ПАРАМЕТРЫ СЕТКИ ===`:
-
-```python
-GRID_SUBDIVISIONS = 100   # Качество сетки: 50 (быстро) / 100 (нормально) / 200 (детально)
-GRID_HALF_SIZE = 5.0       # Область: от -5 до +5 по осям x и y
-OBJECT_NAME = "MathSurface"  # Имя объекта в сцене
-```
-
----
-
-## Возможные ошибки
-
-| Ошибка | Решение |
-|---|---|
-| `ModuleNotFoundError: No module named 'bpy'` | Запустите скрипт через Blender, а не обычный Python |
-| `AttributeError: 'Context' object has no attribute ...` | Убедитесь, что версия Blender ≥ 3.0 |
-| Объект создаётся, но форма плоская | Проверьте функцию — возможно, она всегда возвращает 0 |
-| Медленная генерация | Уменьшите `GRID_SUBDIVISIONS` до 50 |
-
----
-
-*Документация проекта: [../docs/](../docs/)*
+1. `visualize_function.py` -> функция `surface_function(x, y)`.
+2. `generate_surface_mesh.py` -> параметры `FUNCTION_NAME`, `AMPLITUDE`, `FREQUENCY`, `SIGMA`, `RESOLUTION`.
+3. `setup_geometry_nodes_surface.py` -> `DEFAULT_AMPLITUDE`, `DEFAULT_FREQUENCY`, `GRID_SUBDIVISIONS`.
