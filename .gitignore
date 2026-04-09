@@ -1,0 +1,47 @@
+# Blender временные файлы
+*.blend1
+*.blend2
+*.blend3
+*.blend4
+*.blend5
+
+# Blender кэш и резервные копии
+__pycache__/
+*.pyc
+*.pyo
+.blender/
+
+# Рендер и временные изображения
+render/
+renders/
+output/
+*.png
+*.jpg
+*.jpeg
+*.exr
+*.hdr
+*.mp4
+*.avi
+*.mkv
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Редакторы
+.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# Python окружение
+.env
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Логи
+*.log
