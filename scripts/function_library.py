@@ -5,7 +5,7 @@ function_library.py
 для скриптов STEM-визуализации поверхностей.
 
 Пример запуска через Blender:
-blender --background --python scripts\visualize_function.py -- --function wave --resolution 80 --output assets\renders\wave.png
+blender --background --python scripts/visualize_function.py -- --function wave --resolution 80 --output assets/renders/wave.png
 """
 
 from __future__ import annotations

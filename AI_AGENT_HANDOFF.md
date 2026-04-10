@@ -27,7 +27,7 @@
 - `scripts/setup_geometry_nodes_surface.py` — автонастройка Geometry Nodes (амплитуда/частота).
 - `docs/` — теория, гайды, эксперименты, шаблоны отчёта/презентации.
 - `docs/metodichka/полная_методичка.md` — полный текст методички.
-- `docs/metodichka/полная_методичка.docx` и `docs/metodichka/полная_методичка_жирный.docx` — DOCX-версии.
+- `docs/metodichka/Методичка.docx` — канонический DOCX методички.
 - `docs/STEM_отчет_шаблон_под_скриншоты.docx` — шаблон отчёта с местами под скриншоты.
 
 ---
@@ -138,7 +138,7 @@
 
 ## Фаза 5 — Packaging for handoff
 - Финализировать:
-  - `docs/metodichka/полная_методичка_жирный.docx` (или один canonical docx),
+  - `docs/metodichka/Методичка.docx` (канонический DOCX),
   - `docs/STEM_отчет_шаблон_под_скриншоты.docx`,
   - `assets/renders/*`.
 - Добавить краткий `RELEASE_NOTES.md` с тем, что сделано и как использовать.

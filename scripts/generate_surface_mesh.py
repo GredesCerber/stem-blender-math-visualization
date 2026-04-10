@@ -6,7 +6,7 @@ generate_surface_mesh.py
 Примеры:
 1. Blender GUI: Scripting -> Open -> scripts/generate_surface_mesh.py -> Run Script.
 2. CLI:
-   blender --background --python scripts\generate_surface_mesh.py -- --function gaussian --sigma 1.8 --resolution 90
+   blender --background --python scripts/generate_surface_mesh.py -- --function gaussian --sigma 1.8 --resolution 90
 """
 
 from __future__ import annotations
@@ -70,7 +70,6 @@ def create_blender_mesh(
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bm.to_mesh(mesh)
     bm.free()
-    mesh.calc_normals()
     return obj
 
 

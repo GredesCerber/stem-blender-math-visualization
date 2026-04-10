@@ -6,7 +6,7 @@ setup_geometry_nodes_surface.py
 Примеры:
 1. Blender GUI: Scripting -> Open -> scripts/setup_geometry_nodes_surface.py -> Run Script.
 2. CLI:
-   blender --background --python scripts\setup_geometry_nodes_surface.py -- --function wave --resolution 90 --amplitude 2 --frequency 3
+   blender --background --python scripts/setup_geometry_nodes_surface.py -- --function wave --resolution 90 --amplitude 2 --frequency 3
 """
 
 from __future__ import annotations

@@ -17,6 +17,7 @@
 ```text
 stem-blender-math-visualization/
 ├── README.md
+├── FunctionVisualizer.blend          ← финальная учебная сцена
 ├── assets/
 │   └── README.md
 ├── docs/
@@ -35,7 +36,8 @@ stem-blender-math-visualization/
 │   ├── advanced-examples.md
 │   ├── 07_pathfinding_on_surface.md
 │   └── metodichka/
-│       └── полная_методичка.md
+│       ├── полная_методичка.md
+│       └── Методичка.docx            ← канонический DOCX
 └── scripts/
     ├── function_library.py
     ├── visualize_function.py
@@ -59,7 +61,15 @@ stem-blender-math-visualization/
 
 Для интерактивного режима с ползунками запустите `scripts/setup_geometry_nodes_surface.py`.
 Для фонового рендера PNG используйте:  
-`blender --background --python scripts\visualize_function.py -- --function wave --resolution 100 --amplitude 2 --frequency 3 --output assets\renders\wave_A2_k3.png`.
+`blender --background --python scripts/visualize_function.py -- --function wave --resolution 100 --amplitude 2 --frequency 3 --output assets/renders/wave_A2_k3.png`.
+
+## Быстрая учебная демонстрация
+
+1. Откройте `FunctionVisualizer.blend` в Blender.
+2. Выберите объект `MathSurface_GN` → вкладка Properties > Modifiers > GeoNodes_Surface.
+3. Меняйте **Amplitude** и **Frequency** — форма поверхности меняется в реальном времени.
+4. Доступны пресеты (в Custom Properties объекта): `lesson_default`, `gentle_wave`, `dynamic_wave`.
+5. Для рендера: **Render → Render Image** (F12).
 
 ## Минимальные требования ПК
 
@@ -112,14 +122,14 @@ stem-blender-math-visualization/
 
 Пример без препятствий:
 
-```powershell
-blender --background --python scripts\pathfinding\visualize_path_in_blender.py -- --function paraboloid --algorithm astar --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets\renders\path_paraboloid_astar.png
+```bash
+blender --background --python scripts/pathfinding/visualize_path_in_blender.py -- --function paraboloid --algorithm astar --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets/renders/path_paraboloid_astar.png
 ```
 
 Пример с препятствием:
 
-```powershell
-blender --background --python scripts\pathfinding\visualize_path_in_blender.py -- --function wave --algorithm dijkstra --obstacle-circle 0,0,1.5 --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets\renders\path_wave_obstacle_dijkstra.png
+```bash
+blender --background --python scripts/pathfinding/visualize_path_in_blender.py -- --function wave --algorithm dijkstra --obstacle-circle 0,0,1.5 --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets/renders/path_wave_obstacle_dijkstra.png
 ```
 
 ## Тесты (без Blender)

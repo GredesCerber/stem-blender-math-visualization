@@ -6,7 +6,7 @@ visualize_function.py
 Примеры:
 1. Blender GUI: Scripting -> Open -> scripts/visualize_function.py -> Run Script.
 2. CLI:
-   blender --background --python scripts\visualize_function.py -- --function wave --resolution 100 --output assets\renders\wave_cli.png
+   blender --background --python scripts/visualize_function.py -- --function wave --resolution 100 --output assets/renders/wave_cli.png
 """
 
 from __future__ import annotations
