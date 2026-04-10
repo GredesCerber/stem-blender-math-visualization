@@ -229,6 +229,38 @@ def add_path_material(obj: "bpy.types.Object") -> None:
         obj.data.materials.append(material)
 
 
+def create_marker(
+    name: str,
+    position: tuple[float, float, float],
+    color: tuple[float, float, float, float],
+    radius: float = 0.18,
+) -> "bpy.types.Object":
+    """Создаёт сферу-маркер в точке старта или финиша."""
+    remove_object_if_exists(name)
+    bpy.ops.mesh.primitive_uv_sphere_add(
+        radius=radius,
+        location=(position[0], position[1], position[2] + radius),
+        segments=16,
+        ring_count=8,
+    )
+    obj = bpy.context.active_object
+    obj.name = name
+
+    mat = bpy.data.materials.new(name=f"Mat_{name}")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes.get("Principled BSDF")
+    if bsdf:
+        bsdf.inputs["Base Color"].default_value = color
+        emission_color = bsdf.inputs.get("Emission Color") or bsdf.inputs.get("Emission")
+        if emission_color is not None:
+            emission_color.default_value = color
+        emission_strength = bsdf.inputs.get("Emission Strength")
+        if emission_strength is not None:
+            emission_strength.default_value = 1.5
+    obj.data.materials.append(mat)
+    return obj
+
+
 def ensure_camera_and_light() -> None:
     if "PathCamera" not in bpy.data.objects:
         bpy.ops.object.camera_add(location=(12, -12, 10))
@@ -292,6 +324,13 @@ def main() -> None:
 
     path_obj = create_path_curve(args.curve_name, path_points)
     add_path_material(path_obj)
+
+    # Маркеры старта (зелёный) и финиша (жёлтый)
+    start_pt = graph.point(start)
+    goal_pt = graph.point(goal)
+    create_marker("Marker_START", start_pt, color=(0.05, 0.9, 0.15, 1.0))
+    create_marker("Marker_GOAL", goal_pt, color=(1.0, 0.85, 0.0, 1.0))
+
     ensure_camera_and_light()
 
     bpy.ops.object.select_all(action="DESELECT")
@@ -301,7 +340,10 @@ def main() -> None:
     if args.output:
         render_to_png(args.output)
 
-    print(f"[DONE] Curve-маршрут '{path_obj.name}' построен поверх '{surface_obj.name}'.")
+    print(
+        f"[DONE] Curve-маршрут '{path_obj.name}' построен поверх '{surface_obj.name}'. "
+        f"Маркеры: START={start_pt}, GOAL={goal_pt}."
+    )
 
 
 if __name__ == "__main__":
