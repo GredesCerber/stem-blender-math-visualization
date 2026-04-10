@@ -1,98 +1,112 @@
 [
   {
-    "file": "gaussian_sigma0_32.png",
-    "size_bytes": 3006
+    "name": "paraboloid_default",
+    "function": "paraboloid",
+    "resolution": 80,
+    "amplitude": 1.0,
+    "frequency": 1.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\paraboloid_default.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "gaussian_sigma0_58.png",
-    "size_bytes": 5571
+    "name": "paraboloid_A05",
+    "function": "paraboloid",
+    "resolution": 80,
+    "amplitude": 0.5,
+    "frequency": 1.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\paraboloid_A05.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "gaussian_sigma1_41.png",
-    "size_bytes": 16476
+    "name": "wave_A1_k1",
+    "function": "wave",
+    "resolution": 100,
+    "amplitude": 1.0,
+    "frequency": 1.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\wave_A1_k1.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "gaussian_sigma1.png",
-    "size_bytes": 15073
+    "name": "wave_A2_k3",
+    "function": "wave",
+    "resolution": 100,
+    "amplitude": 2.0,
+    "frequency": 3.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\wave_A2_k3.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "gaussian_sigma2.png",
-    "size_bytes": 31818
+    "name": "wave_A3_k5",
+    "function": "wave",
+    "resolution": 100,
+    "amplitude": 3.0,
+    "frequency": 5.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\wave_A3_k5.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "gaussian_sigma3_16.png",
-    "size_bytes": 32251
+    "name": "saddle_default",
+    "function": "saddle",
+    "resolution": 90,
+    "amplitude": 1.0,
+    "frequency": 1.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\saddle_default.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "paraboloid_A05.png",
-    "size_bytes": 135682
+    "name": "ripple_k1",
+    "function": "ripple",
+    "resolution": 100,
+    "amplitude": 1.0,
+    "frequency": 1.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\ripple_k1.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "paraboloid_A2.png",
-    "size_bytes": 32301
+    "name": "ripple_k3",
+    "function": "ripple",
+    "resolution": 100,
+    "amplitude": 1.0,
+    "frequency": 3.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\ripple_k3.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "paraboloid_A5.png",
-    "size_bytes": 32290
+    "name": "gaussian_sigma2",
+    "function": "gaussian",
+    "resolution": 100,
+    "amplitude": 1.0,
+    "frequency": 1.0,
+    "sigma": 2.0,
+    "output": "assets\\renders\\gaussian_sigma2.png",
+    "status": "ok",
+    "return_code": 0
   },
   {
-    "file": "paraboloid_default.png",
-    "size_bytes": 161084
-  },
-  {
-    "file": "ripple_k1.png",
-    "size_bytes": 58225
-  },
-  {
-    "file": "ripple_k3.png",
-    "size_bytes": 95788
-  },
-  {
-    "file": "saddle_default.png",
-    "size_bytes": 171919
-  },
-  {
-    "file": "wave_A0_2_k1.png",
-    "size_bytes": 53817
-  },
-  {
-    "file": "wave_A0_5_k1.png",
-    "size_bytes": 53826
-  },
-  {
-    "file": "wave_A1_k0_5.png",
-    "size_bytes": 37827
-  },
-  {
-    "file": "wave_A1_k1.png",
-    "size_bytes": 160882
-  },
-  {
-    "file": "wave_A1_k2.png",
-    "size_bytes": 67825
-  },
-  {
-    "file": "wave_A1_k4.png",
-    "size_bytes": 62189
-  },
-  {
-    "file": "wave_A1_k8.png",
-    "size_bytes": 56391
-  },
-  {
-    "file": "wave_A2_k1.png",
-    "size_bytes": 53733
-  },
-  {
-    "file": "wave_A2_k3.png",
-    "size_bytes": 236478
-  },
-  {
-    "file": "wave_A3_k5.png",
-    "size_bytes": 549977
-  },
-  {
-    "file": "wave_A5_k1.png",
-    "size_bytes": 53739
+    "name": "gaussian_sigma1",
+    "function": "gaussian",
+    "resolution": 100,
+    "amplitude": 1.0,
+    "frequency": 1.0,
+    "sigma": 1.0,
+    "output": "assets\\renders\\gaussian_sigma1.png",
+    "status": "ok",
+    "return_code": 0
   }
 ]

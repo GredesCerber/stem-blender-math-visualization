@@ -1,4 +1,4 @@
-"""
+r"""
 visualize_path_in_blender.py
 ============================
 Построение маршрута (A* или Dijkstra) по поверхности z = f(x, y).
@@ -14,11 +14,13 @@ visualize_path_in_blender.py
 from __future__ import annotations
 
 import csv
+import math
 import os
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_ROOT = os.path.dirname(SCRIPT_DIR)
+PROJECT_ROOT = os.path.dirname(SCRIPTS_ROOT)
 for path in (SCRIPT_DIR, SCRIPTS_ROOT):
     if path not in sys.path:
         sys.path.insert(0, path)
@@ -37,6 +39,7 @@ from pathfinding.terrain_graph import ObstacleCircle, build_terrain_graph  # noq
 
 try:
     import bpy
+    from enhanced_camera_utils import setup_angled_camera, setup_dramatic_light
 
     HAS_BPY = True
 except ImportError:
@@ -46,6 +49,7 @@ except ImportError:
 
 SURFACE_OBJECT_NAME = "MathSurface_Pathfinding"
 PATH_OBJECT_NAME = "SurfacePath"
+DEFAULT_STARTUP_OBJECTS = ("Cube", "Camera", "Light")
 
 
 def parse_obstacle_circle(raw: str) -> ObstacleCircle:
@@ -129,28 +133,40 @@ def parse_cli():
 
 
 def write_path_csv(points: list[tuple[float, float, float]], output_path: str) -> None:
-    directory = os.path.dirname(output_path)
+    target_path = output_path
+    if not os.path.isabs(target_path):
+        target_path = os.path.join(PROJECT_ROOT, target_path)
+    target_path = os.path.normpath(target_path)
+
+    directory = os.path.dirname(target_path)
     if directory:
         os.makedirs(directory, exist_ok=True)
-    with open(output_path, "w", encoding="utf-8", newline="") as handle:
+    with open(target_path, "w", encoding="utf-8", newline="") as handle:
         writer = csv.writer(handle)
         writer.writerow(["x", "y", "z"])
         for x, y, z in points:
             writer.writerow([f"{x:.6f}", f"{y:.6f}", f"{z:.6f}"])
-    print(f"[OK] Точки маршрута сохранены: {output_path}")
+    print(f"[OK] Точки маршрута сохранены: {target_path}")
 
 
 def remove_object_if_exists(name: str) -> None:
     if name not in bpy.data.objects:
         return
     obj = bpy.data.objects[name]
+    obj_type = obj.type
     data = getattr(obj, "data", None)
     bpy.data.objects.remove(obj, do_unlink=True)
     if data is not None and getattr(data, "users", 1) == 0:
-        if obj.type == "MESH":
+        if obj_type == "MESH":
             bpy.data.meshes.remove(data)
-        elif obj.type == "CURVE":
+        elif obj_type == "CURVE":
             bpy.data.curves.remove(data)
+
+
+def clear_default_startup_objects() -> None:
+    """Remove Blender startup objects so only generated scene elements remain."""
+    for obj_name in DEFAULT_STARTUP_OBJECTS:
+        remove_object_if_exists(obj_name)
 
 
 def create_surface_object(
@@ -262,21 +278,26 @@ def create_marker(
 
 
 def ensure_camera_and_light() -> None:
-    if "PathCamera" not in bpy.data.objects:
-        bpy.ops.object.camera_add(location=(12, -12, 10))
-        camera = bpy.context.active_object
-        camera.name = "PathCamera"
-        camera.rotation_euler = (1.1, 0.0, 0.785)
-        bpy.context.scene.camera = camera
-    if "PathSun" not in bpy.data.objects:
-        bpy.ops.object.light_add(type="SUN", location=(6, 6, 11))
-        sun = bpy.context.active_object
-        sun.name = "PathSun"
-        sun.data.energy = 3.5
+    """Установить камеру и свет с хорошим 3D углом для маршрута."""
+    setup_angled_camera(
+        location=(14, -12, 8),
+        rotation_euler=(math.radians(60), 0, math.radians(45)),
+    )
+    setup_dramatic_light(
+        location=(10, 10, 12),
+        energy=4.5,
+    )
 
 
 def render_to_png(output_path: str) -> None:
-    full_path = bpy.path.abspath(output_path)
+    if output_path.startswith("//"):
+        full_path = bpy.path.abspath(output_path)
+    elif os.path.isabs(output_path):
+        full_path = output_path
+    else:
+        full_path = os.path.join(PROJECT_ROOT, output_path)
+    full_path = os.path.normpath(full_path)
+
     output_dir = os.path.dirname(full_path)
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
@@ -317,6 +338,8 @@ def main() -> None:
 
     if not HAS_BPY:
         return
+
+    clear_default_startup_objects()
 
     vertices, faces = generate_surface_geometry(config)
     surface_obj = create_surface_object(SURFACE_OBJECT_NAME, vertices, faces)

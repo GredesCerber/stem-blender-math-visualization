@@ -32,6 +32,7 @@ from function_library import (  # noqa: E402
 
 try:
     import bpy
+    from enhanced_camera_utils import setup_angled_camera, setup_dramatic_light
 
     HAS_BPY = True
 except ImportError:
@@ -41,6 +42,7 @@ except ImportError:
 
 OBJECT_NAME = "MathSurface_GN"
 NODE_GROUP_NAME = "MathSurface_GN_Group"
+DEFAULT_STARTUP_OBJECTS = ("Cube", "Camera", "Light")
 
 PRESETS: dict[str, dict[str, float | int]] = {
     "lesson_default": {"amplitude": 1.0, "frequency": 1.0, "resolution": 80},
@@ -54,7 +56,13 @@ def remove_existing(name: str) -> None:
         bpy.data.objects.remove(bpy.data.objects[name], do_unlink=True)
 
 
-def remove_node_group(name: str) -> None:
+def clear_default_objects() -> None:
+    """Удалить дефолтные объекты Blender (куб, свет, камеру)."""
+    for obj_name in DEFAULT_STARTUP_OBJECTS:
+        remove_existing(obj_name)
+
+
+def remove_existing_for_grid(name: str) -> None:
     if name in bpy.data.node_groups:
         bpy.data.node_groups.remove(bpy.data.node_groups[name])
 
@@ -274,18 +282,15 @@ def add_material(obj: "bpy.types.Object") -> None:
 
 
 def setup_camera_and_light() -> None:
-    if "GN_Light" not in bpy.data.objects:
-        bpy.ops.object.light_add(type="SUN", location=(5, 5, 10))
-        light = bpy.context.active_object
-        light.name = "GN_Light"
-        light.data.energy = 4.0
-
-    if "GN_Camera" not in bpy.data.objects:
-        bpy.ops.object.camera_add(location=(12, -12, 10))
-        camera = bpy.context.active_object
-        camera.name = "GN_Camera"
-        camera.rotation_euler = (math.radians(55), 0, math.radians(45))
-        bpy.context.scene.camera = camera
+    """Установить камеру сбоку с углом для 3D-эффекта."""
+    setup_angled_camera(
+        location=(13, -11, 8),
+        rotation_euler=(math.radians(60), 0, math.radians(40)),
+    )
+    setup_dramatic_light(
+        location=(10, 10, 12),
+        energy=4.0,
+    )
 
 
 def render_to_png(output_path: str) -> None:
@@ -342,7 +347,8 @@ def main() -> None:
     print(f"[START] setup_geometry_nodes_surface.py | {describe_surface_config(config)}")
 
     if not HAS_BPY:
-        if args.output:
+    clear_default_objects()
+    remove_existing_for_gridput:
             print("[WARN] Параметр --output работает только при запуске через Blender.")
         print_preview(config)
         return

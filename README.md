@@ -1,103 +1,105 @@
 # STEM-проект: 3D-визуализация математических поверхностей в Blender
 
-Учебный проект для наглядного изучения функций вида `z = f(x, y)` через Blender (Python `bpy` + Geometry Nodes).  
-Репозиторий объединяет готовые скрипты, методические материалы и шаблоны для отчёта/презентации.
+Учебный проект для наглядного изучения функций вида `z = f(x, y)` через интерактивную 3D-визуализацию в Blender.
 
-## Что уже реализовано
+---
 
-- единая библиотека функций и параметров (`scripts/function_library.py`);
-- 3 основных скрипта с согласованным CLI и валидацией параметров;
-- генерация 3D-поверхностей из формулы + рендер PNG;
-- интерактивная поверхность через Geometry Nodes;
-- модуль прикладной задачи: поиск пути A*/Dijkstra на поверхности;
-- методические материалы, эксперименты, шаблоны отчёта и презентации.
+## 🚀 БЫСТРЫЙ СТАРТ
 
-## Структура репозитория
+**Главное:** откройте файл и начните экспериментировать!
 
-```text
-stem-blender-math-visualization/
-├── README.md
-├── FunctionVisualizer.blend          ← финальная учебная сцена
-├── assets/
-│   └── README.md
-├── docs/
-│   ├── 01_theory.md
-│   ├── 02_stem_concept.md
-│   ├── 03_blender_guide.md
-│   ├── 04_experiments.md
-│   ├── 05_report_template.md
-│   ├── 06_presentation_template.md
-│   ├── 01_введение_и_актуальность.md
-│   ├── 02_теория_функции_поверхности.md
-│   ├── 03_план_методички.md
-│   ├── 04_реализация_blender.md
-│   ├── 05_эксперименты.md
-│   ├── 06_заключение.md
-│   ├── advanced-examples.md
-│   ├── 07_pathfinding_on_surface.md
-│   └── metodichka/
-│       ├── полная_методичка.md
-│       └── Методичка.docx            ← канонический DOCX
-└── scripts/
-    ├── function_library.py
-    ├── visualize_function.py
-    ├── generate_surface_mesh.py
-    ├── setup_geometry_nodes_surface.py
-    ├── batch_render.py
-    ├── export_experiment_table.py
-    └── pathfinding/
-        ├── terrain_graph.py
-        ├── cost_functions.py
-        ├── search.py
-        └── visualize_path_in_blender.py
+```
+1. Откройте: FunctionVisualizer_Wave.blend
+2. Крутите волну мышкой
+3. Меняйте параметры ползунками (Amplitude, Frequency)
+4. Смотрите как меняется форма!
 ```
 
-## Быстрый старт
+👉 **[Полная инструкция → GETTING_STARTED.md](GETTING_STARTED.md)**
 
-1. Установите Blender 3.6+ (желательно 4.x).
-2. Откройте Blender → Workspace **Scripting**.
-3. Запустите `scripts/visualize_function.py` через **Open** → **Run Script**.
-4. При необходимости задайте параметры через CLI-аргументы (`--function`, `--resolution`, `--amplitude`, `--frequency` и т.д.).
+---
 
-Для интерактивного режима с ползунками запустите `scripts/setup_geometry_nodes_surface.py`.
-Для фонового рендера PNG используйте:  
-`blender --background --python scripts/visualize_function.py -- --function wave --resolution 100 --amplitude 2 --frequency 3 --output assets/renders/wave_A2_k3.png`.
+## 📚 Что здесь
 
-## Быстрая учебная демонстрация
+- ✅ **5 готовых 3D-файлов** (.blend) — просто открыть в Blender
+- ✅ **Интерактивные ползунки** — менять параметры в реальном времени
+- ✅ **Полная методичка** — для учителей и студентов
+- ✅ **Python-скрипты** — для своих экспериментов
 
-1. Откройте `FunctionVisualizer.blend` в Blender.
-2. Выберите объект `MathSurface_GN` → вкладка Properties > Modifiers > GeoNodes_Surface.
-3. Меняйте **Amplitude** и **Frequency** — форма поверхности меняется в реальном времени.
-4. Доступны пресеты (в Custom Properties объекта): `lesson_default`, `gentle_wave`, `dynamic_wave`.
-5. Для рендера: **Render → Render Image** (F12).
+---
 
-## Минимальные требования ПК
+## 📖 Что отвечают
 
-- ОС: Windows 10/11, Linux или macOS
-- Blender: 3.6+ (рекомендуется 4.x)
-- CPU: 4 потока и выше
-- RAM: от 8 ГБ (рекомендуется 16 ГБ для `resolution > 100`)
-- GPU: любая современная, для учебных рендеров достаточно встроенной
+| Для кого | Смотри |
+|---|---|
+| **Я хочу на уроке показать волну** | [GETTING_STARTED.md](GETTING_STARTED.md) |
+| **Мне нужна полная методичка** | `docs/методичка_подробная.md` |
+| **Я хочу писать свой код** | [docs/guides/QUICK_COMMANDS.md](docs/guides/QUICK_COMMANDS.md) |
+| **Я хочу понять архитектуру** | `docs/PROJECT_VISION.md` |
 
-## Скрипты
+---
 
-| Скрипт | Назначение | Когда использовать |
+## 🎬 На уроке (15 минут)
+
+```
+Учитель открывает: FunctionVisualizer_Wave.blend
+Студенты видят: красивая 3D-волна
+Учитель показывает: менять ползунки → волна меняется
+Вывод: "Это математика! z = sin(2x)·cos(2y)"
+```
+
+👉 Подробный сценарий в [GETTING_STARTED.md](GETTING_STARTED.md)
+
+---
+
+## 📁 Главные файлы
+
+```
+FunctionVisualizer_Wave.blend           ← ОТКРОЙТЕ ЭТОТ!
+FunctionVisualizer_Paraboloid.blend     ← для опыта
+FunctionVisualizer_Saddle.blend         ← ещё вариант
+FunctionVisualizer_Ripple.blend         ← волны от центра
+FunctionVisualizer_Gaussian.blend       ← гора Гаусса
+
+scripts/
+├── function_library.py                 ← все 5 функций
+├── visualize_function.py               ← генератор поверхностей
+└── pathfinding/                        ← поиск пути A*/Dijkstra
+
+docs/
+├── GETTING_STARTED.md                  ← начните отсюда!
+└── методичка_подробная.md             ← глубокое изучение
+```
+
+---
+
+## 💡 Ключевые функции
+
+| Функция | Формула | Форма |
 |---|---|---|
-| `scripts/visualize_function.py` | Быстрый и понятный генератор поверхности | Первый запуск и учебные демонстрации |
-| `scripts/generate_surface_mesh.py` | Генерация сетки с выбором предустановленных функций | Эксперименты с параметрами `A`, `k`, `sigma`, `resolution` |
-| `scripts/setup_geometry_nodes_surface.py` | Автоматическая настройка Geometry Nodes | Интерактивное управление формой поверхности |
-| `scripts/pathfinding/visualize_path_in_blender.py` | Поиск и визуализация маршрута на 3D-поверхности | Прикладные STEM-задачи (A*/Dijkstra) |
+| **Wave** | `z = A·sin(k·x)·cos(k·y)` | Морская рябь 🌊 |
+| **Paraboloid** | `z = A·(x²+y²)` | Чаша 🥣 |
+| **Saddle** | `z = A·(x²−y²)` | Седло 🐴 |
+| **Ripple** | `z = A·sin(k·r)` | Круги на воде 💧 |
+| **Gaussian** | `z = A·exp(−(x²+y²)/σ²)` | Гора 🏔️ |
 
-## Документация
+---
 
-**Базовый набор материалов:**
+## 🎮 Как работать с 3D
 
-- `docs/01_theory.md`
-- `docs/02_stem_concept.md`
-- `docs/03_blender_guide.md`
-- `docs/04_experiments.md`
-- `docs/05_report_template.md`
-- `docs/06_presentation_template.md`
+| Действие | Как |
+|---|---|
+| Вращать объект | Средняя кнопка мышки |
+| Приблизить | Scroll вверх |
+| Отдалить | Scroll вниз |
+| Менять параметры | Amplitude/Frequency ползунки (справа) |
+| Рендер | F12 |
+| Вид сверху | Numpad 7 |
+| Исходный вид | Numpad 0 |
+
+---
+
+## 📊 Что внутри
 
 **Расширенная версия методички (по главам):**
 

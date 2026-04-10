@@ -28,6 +28,7 @@ from function_library import (  # noqa: E402
 
 try:
     import bpy
+    from enhanced_camera_utils import setup_camera_for_function
 
     HAS_BPY = True
 except ImportError:
@@ -120,19 +121,16 @@ def add_color_material(
     links.new(color_ramp.outputs["Color"], bsdf.inputs["Base Color"])
 
 
-def ensure_camera_and_light() -> None:
-    if "Camera" not in bpy.data.objects:
-        bpy.ops.object.camera_add(location=(10, -10, 9))
-        camera = bpy.context.active_object
-        camera.name = "Camera"
-        camera.rotation_euler = (1.1, 0.0, 0.785)
-        bpy.context.scene.camera = camera
+def clear_default_objects() -> None:
+    """Удалить дефолтные объекты Blender (куб, свет, камеру)."""
+    for obj_name in ["Cube", "Camera", "Light"]:
+        if obj_name in bpy.data.objects:
+            bpy.data.objects.remove(bpy.data.objects[obj_name], do_unlink=True)
 
-    if "Sun" not in bpy.data.objects:
-        bpy.ops.object.light_add(type="SUN", location=(6, 6, 10))
-        sun = bpy.context.active_object
-        sun.name = "Sun"
-        sun.data.energy = 3.5
+
+def ensure_camera_and_light(function_name: str = "default") -> None:
+    """Установить камеру и свет с оптимальным углом для 3D-вида."""
+    setup_camera_for_function(function_name)
 
 
 def render_to_png(output_path: str) -> None:
@@ -169,11 +167,12 @@ def main() -> None:
         print_formula_preview(config)
         return
 
+    clear_default_objects()
     vertices, faces = generate_surface_geometry(config)
     obj = create_surface_object(vertices, faces, OBJECT_NAME)
     z_values = [vertex[2] for vertex in vertices]
     add_color_material(obj, z_min=min(z_values), z_max=max(z_values))
-    ensure_camera_and_light()
+    ensure_camera_and_light(config.function)  # оптимальная камера для каждой функции
 
     if cli_args.output:
         render_to_png(cli_args.output)

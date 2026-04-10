@@ -29,6 +29,7 @@ from function_library import (  # noqa: E402
 try:
     import bpy
     import bmesh
+    from enhanced_camera_utils import setup_camera_for_function
 
     HAS_BPY = True
 except ImportError:
@@ -37,6 +38,7 @@ except ImportError:
 
 
 OBJECT_NAME = "MathSurface_Mesh"
+DEFAULT_STARTUP_OBJECTS = ("Cube", "Camera", "Light")
 
 
 def remove_existing_object(name: str) -> None:
@@ -47,6 +49,12 @@ def remove_existing_object(name: str) -> None:
     bpy.data.objects.remove(obj, do_unlink=True)
     if mesh is not None and mesh.users == 0:
         bpy.data.meshes.remove(mesh)
+
+
+def clear_default_objects() -> None:
+    """Удалить дефолтные объекты Blender (куб, свет, камеру)."""
+    for obj_name in DEFAULT_STARTUP_OBJECTS:
+        remove_existing_object(obj_name)
 
 
 def create_blender_mesh(
@@ -102,19 +110,9 @@ def add_default_material(obj: "bpy.types.Object", function_name: str) -> None:
         obj.data.materials.append(material)
 
 
-def ensure_camera_and_light() -> None:
-    if "MeshCamera" not in bpy.data.objects:
-        bpy.ops.object.camera_add(location=(10, -10, 9))
-        camera = bpy.context.active_object
-        camera.name = "MeshCamera"
-        camera.rotation_euler = (1.1, 0.0, 0.785)
-        bpy.context.scene.camera = camera
-
-    if "MeshSun" not in bpy.data.objects:
-        bpy.ops.object.light_add(type="SUN", location=(5, 5, 10))
-        sun = bpy.context.active_object
-        sun.name = "MeshSun"
-        sun.data.energy = 3.0
+def ensure_camera_and_light(function_name: str = "default") -> None:
+    """Установить камеру и свет с оптимальным углом для 3D-вида."""
+    setup_camera_for_function(function_name)
 
 
 def render_to_png(output_path: str) -> None:
@@ -145,6 +143,7 @@ def main() -> None:
     )
     print(f"[START] generate_surface_mesh.py | {describe_surface_config(config)}")
 
+    clear_default_objects()
     if not HAS_BPY:
         if cli_args.output:
             print("[WARN] Параметр --output работает только при запуске через Blender.")
@@ -154,7 +153,7 @@ def main() -> None:
     vertices, faces = generate_surface_geometry(config)
     obj = create_blender_mesh(OBJECT_NAME, vertices, faces)
     add_default_material(obj, config.function)
-    ensure_camera_and_light()
+    ensure_camera_and_light(config.function)
 
     bpy.ops.object.select_all(action="DESELECT")
     obj.select_set(True)
