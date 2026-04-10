@@ -185,12 +185,12 @@ Blender содержит встроенный Python 3.x и полноценны
 
 ### 4.3.2 Запуск из VS Code (командная строка)
 
-```bash
-# Запустить скрипт с помощью Blender в фоновом режиме:
-blender --background --python scripts/visualize_function.py
+```powershell
+# Запустить скрипт в фоновом режиме с параметрами:
+blender --background --python scripts\visualize_function.py -- --function wave --resolution 100 --amplitude 1.5 --frequency 2.0
 
 # Рендер и сохранение PNG:
-blender --background --python scripts/visualize_function.py -- --output /tmp/render.png
+blender --background --python scripts\visualize_function.py -- --function wave --resolution 100 --amplitude 2.0 --frequency 3.0 --output assets\renders\wave_A2_k3.png
 ```
 
 > 📝 Путь к Blender (`blender`) должен быть в PATH, иначе используйте полный путь, например:
@@ -200,35 +200,22 @@ blender --background --python scripts/visualize_function.py -- --output /tmp/ren
 
 ---
 
-### 4.3.3 Как изменить функцию в скрипте
+### 4.3.3 Как менять функцию и параметры
 
-Откройте `scripts/visualize_function.py`. Найдите раздел `# === ФОРМУЛА ===`.
+Теперь основные скрипты используют единый интерфейс:
 
-```python
-# === ФОРМУЛА ===
-# Измените эту строку, чтобы изменить форму поверхности.
+- `--function` (`paraboloid`, `saddle`, `wave`, `ripple`, `gaussian`, `custom`)
+- `--resolution`
+- `--x-min`, `--x-max`, `--y-min`, `--y-max`
+- `--amplitude`, `--frequency`, `--sigma`
 
-def surface_function(x: float, y: float) -> float:
-    """Функция z = f(x, y). Замените тело функции на любую формулу."""
-    # Параболоид:
-    return x**2 + y**2
+Пример:
 
-    # Волновая поверхность:
-    # import math
-    # A, k = 1.0, 1.0
-    # return A * math.sin(k * x) * math.cos(k * y)
-
-    # Круговые волны:
-    # import math
-    # r = math.sqrt(x**2 + y**2)
-    # return math.sin(r) if r != 0 else 0.0
-
-    # Гауссов колокол:
-    # import math
-    # return math.exp(-(x**2 + y**2))
+```powershell
+blender --background --python scripts\generate_surface_mesh.py -- --function gaussian --sigma 1.2 --resolution 90 --output assets\renders\gaussian_sigma1_2.png
 ```
 
-Раскомментируйте нужную формулу (или напишите свою) и снова запустите скрипт.
+Если нужно добавить новую формулу, расширьте реестр в `scripts/function_library.py`.
 
 ---
 

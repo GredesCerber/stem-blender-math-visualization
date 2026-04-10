@@ -5,10 +5,12 @@
 
 ## Что уже реализовано
 
-- генерация 3D-поверхностей из формулы (`scripts/generate_surface_mesh.py`, `scripts/visualize_function.py`);
-- интерактивная поверхность через Geometry Nodes (`scripts/setup_geometry_nodes_surface.py`);
-- методические материалы для занятия, экспериментов и защиты проекта;
-- шаблоны отчёта и презентации.
+- единая библиотека функций и параметров (`scripts/function_library.py`);
+- 3 основных скрипта с согласованным CLI и валидацией параметров;
+- генерация 3D-поверхностей из формулы + рендер PNG;
+- интерактивная поверхность через Geometry Nodes;
+- модуль прикладной задачи: поиск пути A*/Dijkstra на поверхности;
+- методические материалы, эксперименты, шаблоны отчёта и презентации.
 
 ## Структура репозитория
 
@@ -31,13 +33,21 @@ stem-blender-math-visualization/
 │   ├── 05_эксперименты.md
 │   ├── 06_заключение.md
 │   ├── advanced-examples.md
+│   ├── 07_pathfinding_on_surface.md
 │   └── metodichka/
 │       └── полная_методичка.md
 └── scripts/
-    ├── README.md
+    ├── function_library.py
     ├── visualize_function.py
     ├── generate_surface_mesh.py
-    └── setup_geometry_nodes_surface.py
+    ├── setup_geometry_nodes_surface.py
+    ├── batch_render.py
+    ├── export_experiment_table.py
+    └── pathfinding/
+        ├── terrain_graph.py
+        ├── cost_functions.py
+        ├── search.py
+        └── visualize_path_in_blender.py
 ```
 
 ## Быстрый старт
@@ -45,11 +55,19 @@ stem-blender-math-visualization/
 1. Установите Blender 3.6+ (желательно 4.x).
 2. Откройте Blender → Workspace **Scripting**.
 3. Запустите `scripts/visualize_function.py` через **Open** → **Run Script**.
-4. Измените функцию в `surface_function(x, y)` и перезапустите скрипт.
+4. При необходимости задайте параметры через CLI-аргументы (`--function`, `--resolution`, `--amplitude`, `--frequency` и т.д.).
 
 Для интерактивного режима с ползунками запустите `scripts/setup_geometry_nodes_surface.py`.
 Для фонового рендера PNG используйте:  
-`blender --background --python scripts/visualize_function.py -- --output renders/surface.png`.
+`blender --background --python scripts\visualize_function.py -- --function wave --resolution 100 --amplitude 2 --frequency 3 --output assets\renders\wave_A2_k3.png`.
+
+## Минимальные требования ПК
+
+- ОС: Windows 10/11, Linux или macOS
+- Blender: 3.6+ (рекомендуется 4.x)
+- CPU: 4 потока и выше
+- RAM: от 8 ГБ (рекомендуется 16 ГБ для `resolution > 100`)
+- GPU: любая современная, для учебных рендеров достаточно встроенной
 
 ## Скрипты
 
@@ -58,6 +76,7 @@ stem-blender-math-visualization/
 | `scripts/visualize_function.py` | Быстрый и понятный генератор поверхности | Первый запуск и учебные демонстрации |
 | `scripts/generate_surface_mesh.py` | Генерация сетки с выбором предустановленных функций | Эксперименты с параметрами `A`, `k`, `sigma`, `resolution` |
 | `scripts/setup_geometry_nodes_surface.py` | Автоматическая настройка Geometry Nodes | Интерактивное управление формой поверхности |
+| `scripts/pathfinding/visualize_path_in_blender.py` | Поиск и визуализация маршрута на 3D-поверхности | Прикладные STEM-задачи (A*/Dijkstra) |
 
 ## Документация
 
@@ -78,6 +97,7 @@ stem-blender-math-visualization/
 - `docs/04_реализация_blender.md`
 - `docs/05_эксперименты.md`
 - `docs/06_заключение.md`
+- `docs/07_pathfinding_on_surface.md`
 - `docs/metodichka/полная_методичка.md`
 
 ## Рекомендуемый учебный маршрут
@@ -85,7 +105,30 @@ stem-blender-math-visualization/
 1. Теория и мотивация: `docs/01_theory.md` + `docs/02_stem_concept.md`.
 2. Практика в Blender: `docs/03_blender_guide.md` и запуск скриптов из `scripts/`.
 3. Эксперименты: `docs/04_experiments.md` (или `docs/05_эксперименты.md` для расширенной версии).
-4. Оформление результата: `docs/05_report_template.md` + `docs/06_presentation_template.md`.
+4. Прикладной модуль: `docs/07_pathfinding_on_surface.md`.
+5. Оформление результата: `docs/05_report_template.md` + `docs/06_presentation_template.md`.
+
+## Поиск пути на поверхности (A* / Dijkstra)
+
+Пример без препятствий:
+
+```powershell
+blender --background --python scripts\pathfinding\visualize_path_in_blender.py -- --function paraboloid --algorithm astar --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets\renders\path_paraboloid_astar.png
+```
+
+Пример с препятствием:
+
+```powershell
+blender --background --python scripts\pathfinding\visualize_path_in_blender.py -- --function wave --algorithm dijkstra --obstacle-circle 0,0,1.5 --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets\renders\path_wave_obstacle_dijkstra.png
+```
+
+## Тесты (без Blender)
+
+Если установлен Python:
+
+```powershell
+python -m unittest discover -s tests
+```
 
 ## Лицензия
 

@@ -1,43 +1,52 @@
 # Скрипты проекта
 
-В этой папке находятся Python-скрипты для визуализации математических поверхностей в Blender.
+В папке `scripts/` находятся основные Blender-скрипты и дополнительные утилиты.
 
-## Файлы
+## Основные скрипты (ядро проекта)
 
 | Файл | Назначение |
 |---|---|
-| `visualize_function.py` | Быстрый запуск поверхности `z = f(x, y)` и цветовая карта по высоте |
-| `generate_surface_mesh.py` | Генерация mesh-поверхности с выбором предустановленных функций |
-| `setup_geometry_nodes_surface.py` | Автоматическая настройка Geometry Nodes для волновой поверхности |
+| `visualize_function.py` | Быстрая генерация поверхности `z=f(x,y)` + colormap + `--output` для PNG |
+| `generate_surface_mesh.py` | Генерация mesh-поверхности с материалом и единым CLI |
+| `setup_geometry_nodes_surface.py` | Автоматическая сборка Geometry Nodes (интерактивная волна `A`, `k`) |
 
-## Запуск в Blender (рекомендуется)
+## Дополнительные скрипты
+
+| Файл | Назначение |
+|---|---|
+| `function_library.py` | Единый реестр функций, валидация и общие CLI-аргументы |
+| `batch_render.py` | Пакетный запуск рендеров через Blender CLI |
+| `export_experiment_table.py` | Экспорт таблиц экспериментов в CSV/Markdown |
+| `pathfinding\visualize_path_in_blender.py` | Поиск пути (A*/Dijkstra) и визуализация маршрута на поверхности |
+| `pathfinding\*.py` | Модули графа/стоимости/поиска для прикладной задачи маршрутизации |
+
+## Единый интерфейс CLI (для 3 основных скриптов)
+
+Поддерживаемые аргументы:
+
+- `--function`
+- `--resolution`
+- `--x-min`, `--x-max`, `--y-min`, `--y-max`
+- `--amplitude`, `--frequency`, `--sigma`
+- `--output` (для сохранения PNG, когда доступен Blender)
+
+Пример:
+
+```powershell
+"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\visualize_function.py -- --function wave --resolution 100 --amplitude 2 --frequency 3 --output assets\renders\wave_A2_k3.png
+```
+
+## Запуск в Blender (GUI)
 
 1. Откройте Blender.
 2. Перейдите в Workspace **Scripting**.
-3. Нажмите **Open** и выберите нужный скрипт из папки `scripts/`.
-4. Нажмите **Run Script** (или `Alt+P`).
-
-## Запуск из командной строки
-
-```powershell
-"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\visualize_function.py
-"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\generate_surface_mesh.py
-"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\setup_geometry_nodes_surface.py
-```
-
-Для `visualize_function.py` поддерживается рендер в PNG:
-
-```powershell
-"C:\Program Files\Blender Foundation\Blender 4.x\blender.exe" --background --python scripts\visualize_function.py -- --output renders\surface.png
-```
+3. Нажмите **Open** и выберите скрипт из `scripts/`.
+4. Нажмите **Run Script** (`Alt+P`).
 
 ## Запуск без Blender
 
-- `visualize_function.py` и `generate_surface_mesh.py` в обычном Python печатают preview значений функции.
-- `setup_geometry_nodes_surface.py` вне Blender выводит подсказку и завершает работу без ошибки.
+Все три основных скрипта завершаются предсказуемо:
 
-## Что менять в первую очередь
-
-1. `visualize_function.py` -> функция `surface_function(x, y)`.
-2. `generate_surface_mesh.py` -> параметры `FUNCTION_NAME`, `AMPLITUDE`, `FREQUENCY`, `SIGMA`, `RESOLUTION`.
-3. `setup_geometry_nodes_surface.py` -> `DEFAULT_AMPLITUDE`, `DEFAULT_FREQUENCY`, `GRID_SUBDIVISIONS`.
+- печатают preview значений `f(x,y)`;
+- валидируют параметры CLI;
+- не падают с неясными ошибками при отсутствии `bpy`.

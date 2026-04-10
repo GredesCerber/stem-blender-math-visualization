@@ -20,3 +20,13 @@ assets/
    - `paraboloid_default.png`
    - `wave_A1_k2.png`
    - `saddle_vs_paraboloid.png`
+
+## Уже подготовленные материалы
+
+В `assets/renders/` добавлены готовые PNG для экспериментов (амплитуда, частота, сравнение функций), включая:
+
+- `paraboloid_default.png`, `paraboloid_A05.png`, `paraboloid_A2.png`
+- `wave_A1_k1.png`, `wave_A2_k3.png`, `wave_A1_k0_5.png`, `wave_A1_k8.png`
+- `saddle_default.png`, `ripple_k1.png`, `gaussian_sigma2.png`
+
+Также там лежат `render_manifest.csv` и `render_manifest.json` с перечнем файлов.

@@ -1,0 +1,98 @@
+[
+  {
+    "file": "gaussian_sigma0_32.png",
+    "size_bytes": 3006
+  },
+  {
+    "file": "gaussian_sigma0_58.png",
+    "size_bytes": 5571
+  },
+  {
+    "file": "gaussian_sigma1_41.png",
+    "size_bytes": 16476
+  },
+  {
+    "file": "gaussian_sigma1.png",
+    "size_bytes": 15073
+  },
+  {
+    "file": "gaussian_sigma2.png",
+    "size_bytes": 31818
+  },
+  {
+    "file": "gaussian_sigma3_16.png",
+    "size_bytes": 32251
+  },
+  {
+    "file": "paraboloid_A05.png",
+    "size_bytes": 135682
+  },
+  {
+    "file": "paraboloid_A2.png",
+    "size_bytes": 32301
+  },
+  {
+    "file": "paraboloid_A5.png",
+    "size_bytes": 32290
+  },
+  {
+    "file": "paraboloid_default.png",
+    "size_bytes": 161084
+  },
+  {
+    "file": "ripple_k1.png",
+    "size_bytes": 58225
+  },
+  {
+    "file": "ripple_k3.png",
+    "size_bytes": 95788
+  },
+  {
+    "file": "saddle_default.png",
+    "size_bytes": 171919
+  },
+  {
+    "file": "wave_A0_2_k1.png",
+    "size_bytes": 53817
+  },
+  {
+    "file": "wave_A0_5_k1.png",
+    "size_bytes": 53826
+  },
+  {
+    "file": "wave_A1_k0_5.png",
+    "size_bytes": 37827
+  },
+  {
+    "file": "wave_A1_k1.png",
+    "size_bytes": 160882
+  },
+  {
+    "file": "wave_A1_k2.png",
+    "size_bytes": 67825
+  },
+  {
+    "file": "wave_A1_k4.png",
+    "size_bytes": 62189
+  },
+  {
+    "file": "wave_A1_k8.png",
+    "size_bytes": 56391
+  },
+  {
+    "file": "wave_A2_k1.png",
+    "size_bytes": 53733
+  },
+  {
+    "file": "wave_A2_k3.png",
+    "size_bytes": 236478
+  },
+  {
+    "file": "wave_A3_k5.png",
+    "size_bytes": 549977
+  },
+  {
+    "file": "wave_A5_k1.png",
+    "size_bytes": 53739
+  }
+]

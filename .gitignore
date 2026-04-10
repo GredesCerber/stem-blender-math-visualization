@@ -24,6 +24,12 @@ output/
 *.avi
 *.mkv
 
+# Разрешаем учебные рендеры, которые используются в документации
+!assets/renders/
+!assets/renders/*.png
+!assets/renders/*.csv
+!assets/renders/*.json
+
 # Системные файлы
 .DS_Store
 Thumbs.db
