@@ -16,6 +16,8 @@
 ```
 
 👉 **[Полная инструкция → GETTING_STARTED.md](GETTING_STARTED.md)**
+  
+👉 **[Самодостаточная методичка → docs/metodichka/полная_методичка.md](docs/metodichka/полная_методичка.md)**
 
 ---
 
@@ -33,7 +35,7 @@
 | Для кого | Смотри |
 |---|---|
 | **Я хочу на уроке показать волну** | [GETTING_STARTED.md](GETTING_STARTED.md) |
-| **Мне нужна полная методичка** | `docs/методичка_подробная.md` |
+| **Мне нужна полная методичка** | [docs/metodichka/полная_методичка.md](docs/metodichka/полная_методичка.md) |
 | **Я хочу писать свой код** | [docs/guides/QUICK_COMMANDS.md](docs/guides/QUICK_COMMANDS.md) |
 | **Я хочу понять архитектуру** | `docs/PROJECT_VISION.md` |
 
@@ -68,7 +70,7 @@ scripts/
 
 docs/
 ├── GETTING_STARTED.md                  ← начните отсюда!
-└── методичка_подробная.md             ← глубокое изучение
+└── metodichka\полная_методичка.md     ← самодостаточная методичка
 ```
 
 ---
@@ -110,7 +112,7 @@ docs/
 - `docs/05_эксперименты.md`
 - `docs/06_заключение.md`
 - `docs/07_pathfinding_on_surface.md`
-- `docs/metodichka/полная_методичка.md`
+- `docs/metodichka/полная_методичка.md` *(самодостаточный документ: можно работать только по нему)*
 
 ## Рекомендуемый учебный маршрут
 
