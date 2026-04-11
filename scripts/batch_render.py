@@ -18,16 +18,35 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_PRESETS: list[dict[str, Any]] = [
+    # Параболоид — разные амплитуды
     {"name": "paraboloid_default", "function": "paraboloid", "resolution": 80, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
-    {"name": "paraboloid_A05", "function": "paraboloid", "resolution": 80, "amplitude": 0.5, "frequency": 1.0, "sigma": 2.0},
-    {"name": "wave_A1_k1", "function": "wave", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
-    {"name": "wave_A2_k3", "function": "wave", "resolution": 100, "amplitude": 2.0, "frequency": 3.0, "sigma": 2.0},
-    {"name": "wave_A3_k5", "function": "wave", "resolution": 100, "amplitude": 3.0, "frequency": 5.0, "sigma": 2.0},
+    {"name": "paraboloid_A05",     "function": "paraboloid", "resolution": 80, "amplitude": 0.5, "frequency": 1.0, "sigma": 2.0},
+    {"name": "paraboloid_A2",      "function": "paraboloid", "resolution": 80, "amplitude": 2.0, "frequency": 1.0, "sigma": 2.0},
+    {"name": "paraboloid_A5",      "function": "paraboloid", "resolution": 80, "amplitude": 5.0, "frequency": 1.0, "sigma": 2.0},
+    # Седло
     {"name": "saddle_default", "function": "saddle", "resolution": 90, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
+    # Волна — эксперимент по амплитуде и частоте
+    {"name": "wave_A0_2_k1", "function": "wave", "resolution": 100, "amplitude": 0.2, "frequency": 1.0, "sigma": 2.0},
+    {"name": "wave_A0_5_k1", "function": "wave", "resolution": 100, "amplitude": 0.5, "frequency": 1.0, "sigma": 2.0},
+    {"name": "wave_A1_k0_5", "function": "wave", "resolution": 100, "amplitude": 1.0, "frequency": 0.5, "sigma": 2.0},
+    {"name": "wave_A1_k1",   "function": "wave", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
+    {"name": "wave_A1_k2",   "function": "wave", "resolution": 100, "amplitude": 1.0, "frequency": 2.0, "sigma": 2.0},
+    {"name": "wave_A1_k4",   "function": "wave", "resolution": 100, "amplitude": 1.0, "frequency": 4.0, "sigma": 2.0},
+    {"name": "wave_A1_k8",   "function": "wave", "resolution": 100, "amplitude": 1.0, "frequency": 8.0, "sigma": 2.0},
+    {"name": "wave_A2_k1",   "function": "wave", "resolution": 100, "amplitude": 2.0, "frequency": 1.0, "sigma": 2.0},
+    {"name": "wave_A2_k3",   "function": "wave", "resolution": 100, "amplitude": 2.0, "frequency": 3.0, "sigma": 2.0},
+    {"name": "wave_A3_k5",   "function": "wave", "resolution": 100, "amplitude": 3.0, "frequency": 5.0, "sigma": 2.0},
+    {"name": "wave_A5_k1",   "function": "wave", "resolution": 100, "amplitude": 5.0, "frequency": 1.0, "sigma": 2.0},
+    # Рябь
     {"name": "ripple_k1", "function": "ripple", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
     {"name": "ripple_k3", "function": "ripple", "resolution": 100, "amplitude": 1.0, "frequency": 3.0, "sigma": 2.0},
-    {"name": "gaussian_sigma2", "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
-    {"name": "gaussian_sigma1", "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 1.0},
+    # Гауссиана — эксперимент по σ
+    {"name": "gaussian_sigma0_32", "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 0.32},
+    {"name": "gaussian_sigma0_58", "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 0.58},
+    {"name": "gaussian_sigma1",    "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 1.0},
+    {"name": "gaussian_sigma1_41", "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 1.41},
+    {"name": "gaussian_sigma2",    "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 2.0},
+    {"name": "gaussian_sigma3_16", "function": "gaussian", "resolution": 100, "amplitude": 1.0, "frequency": 1.0, "sigma": 3.16},
 ]
 
 

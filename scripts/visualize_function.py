@@ -28,7 +28,11 @@ from function_library import (  # noqa: E402
 
 try:
     import bpy
-    from enhanced_camera_utils import setup_camera_for_function
+    from enhanced_camera_utils import (
+        aim_camera_at_bbox,
+        mesh_world_bbox,
+        setup_camera_for_function,
+    )
 
     HAS_BPY = True
 except ImportError:
@@ -171,8 +175,29 @@ def main() -> None:
     vertices, faces = generate_surface_geometry(config)
     obj = create_surface_object(vertices, faces, OBJECT_NAME)
     z_values = [vertex[2] for vertex in vertices]
-    add_color_material(obj, z_min=min(z_values), z_max=max(z_values))
-    ensure_camera_and_light(config.function)  # оптимальная камера для каждой функции
+
+    # Нормализуем визуальную высоту: параболоид при A=1 имеет z≤50, гауссиана
+    # при sigma=0.3 даёт z≈1 — без приведения к одному масштабу функции
+    # несравнимы на рендере. Scale меняет только display; math-значения
+    # z_values остаются исходными.
+    z_range = max(z_values) - min(z_values)
+    factor = 1.0
+    if z_range > 1e-6:
+        target_height = 5.0
+        factor = target_height / z_range
+        obj.scale[2] = factor
+        bpy.context.view_layer.update()
+
+    # Цветовая карта считает z в world-space (шейдерная Geometry node),
+    # поэтому диапазон нужно передавать уже с учётом scale.
+    add_color_material(obj, z_min=min(z_values) * factor, z_max=max(z_values) * factor)
+    ensure_camera_and_light(config.function)
+
+    # Динамически наводим камеру на реальный bbox (уже с учётом scale).
+    bbox_min, bbox_max = mesh_world_bbox(obj)
+    camera_obj = bpy.data.objects.get("Camera")
+    if camera_obj is not None:
+        aim_camera_at_bbox(camera_obj, bbox_min, bbox_max)
 
     if cli_args.output:
         render_to_png(cli_args.output)

@@ -39,7 +39,12 @@ from pathfinding.terrain_graph import ObstacleCircle, build_terrain_graph  # noq
 
 try:
     import bpy
-    from enhanced_camera_utils import setup_angled_camera, setup_dramatic_light
+    from enhanced_camera_utils import (
+        aim_camera_at_bbox,
+        mesh_world_bbox,
+        setup_angled_camera,
+        setup_dramatic_light,
+    )
 
     HAS_BPY = True
 except ImportError:
@@ -355,6 +360,29 @@ def main() -> None:
     create_marker("Marker_GOAL", goal_pt, color=(1.0, 0.85, 0.0, 1.0))
 
     ensure_camera_and_light()
+
+    # Нормализуем визуальную высоту сцены: поверхность, маршрут и маркеры
+    # масштабируются по Z одним коэффициентом. Это не меняет уже посчитанный
+    # маршрут — он считался по реальному z в terrain_graph — но делает кадр
+    # сопоставимым для любых функций (плоская гауссиана и крутой параболоид).
+    z_vals = [v[2] for v in vertices]
+    z_range = max(z_vals) - min(z_vals)
+    if z_range > 1e-6:
+        target_height = 5.0
+        factor = target_height / z_range
+        surface_obj.scale[2] = factor
+        path_obj.scale[2] = factor
+        for m_name in ("Marker_START", "Marker_GOAL"):
+            m = bpy.data.objects.get(m_name)
+            if m is not None:
+                m.location[2] = m.location[2] * factor
+        bpy.context.view_layer.update()
+
+    # Наводим камеру на фактические границы отмасштабированной поверхности.
+    bbox_min, bbox_max = mesh_world_bbox(surface_obj)
+    camera_obj = bpy.data.objects.get("Camera")
+    if camera_obj is not None:
+        aim_camera_at_bbox(camera_obj, bbox_min, bbox_max)
 
     bpy.ops.object.select_all(action="DESELECT")
     path_obj.select_set(True)
