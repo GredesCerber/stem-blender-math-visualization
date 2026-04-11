@@ -40,7 +40,12 @@ from pathfinding.labyrinth import (  # noqa: E402
 
 try:
     import bpy  # type: ignore
-    from enhanced_camera_utils import setup_angled_camera, setup_dramatic_light
+    from enhanced_camera_utils import (
+        aim_camera_at_bbox,
+        mesh_world_bbox,
+        setup_angled_camera,
+        setup_dramatic_light,
+    )
 
     HAS_BPY = True
 except ImportError:
@@ -98,6 +103,11 @@ def parse_cli() -> argparse.Namespace:
         "--path-output",
         default=None,
         help="CSV-файл с координатами точек маршрута.",
+    )
+    parser.add_argument(
+        "--no-path",
+        action="store_true",
+        help="Не рисовать маршрут и маркеры (только сам лабиринт).",
     )
     return parser.parse_args(extract_user_argv())
 
@@ -371,16 +381,35 @@ def main() -> None:
         return
 
     clear_default_startup_objects()
-    build_floor(len(maze), len(maze[0]), args.cell_size)
-    build_walls_mesh(maze, cell_size=args.cell_size, wall_height=args.wall_height)
-    build_path_curve(scene_points, wall_height=args.wall_height)
+    floor_obj = build_floor(len(maze), len(maze[0]), args.cell_size)
+    walls_obj = build_walls_mesh(maze, cell_size=args.cell_size, wall_height=args.wall_height)
 
-    start_point = (start[0] * args.cell_size, start[1] * args.cell_size, 0.0)
-    goal_point = (goal[0] * args.cell_size, goal[1] * args.cell_size, 0.0)
-    create_marker(MARKER_START, start_point, color=(0.05, 0.9, 0.15, 1.0))
-    create_marker(MARKER_GOAL, goal_point, color=(1.0, 0.85, 0.0, 1.0))
+    if not args.no_path:
+        build_path_curve(scene_points, wall_height=args.wall_height)
+        start_point = (start[0] * args.cell_size, start[1] * args.cell_size, 0.0)
+        goal_point = (goal[0] * args.cell_size, goal[1] * args.cell_size, 0.0)
+        create_marker(MARKER_START, start_point, color=(0.05, 0.9, 0.15, 1.0))
+        create_marker(MARKER_GOAL, goal_point, color=(1.0, 0.85, 0.0, 1.0))
 
     ensure_camera_and_light(len(maze), len(maze[0]), args.cell_size)
+
+    # Динамически наводим камеру на реальный bbox всей сцены (пол + стены),
+    # чтобы лабиринт целиком попадал в кадр при любом размере.
+    (fmin_x, fmin_y, fmin_z), (fmax_x, fmax_y, fmax_z) = mesh_world_bbox(floor_obj)
+    (wmin_x, wmin_y, wmin_z), (wmax_x, wmax_y, wmax_z) = mesh_world_bbox(walls_obj)
+    scene_min = (min(fmin_x, wmin_x), min(fmin_y, wmin_y), min(fmin_z, wmin_z))
+    scene_max = (max(fmax_x, wmax_x), max(fmax_y, wmax_y), max(fmax_z, wmax_z))
+    camera_obj = bpy.data.objects.get("Camera")
+    if camera_obj is not None:
+        # Более крутой top-down ракурс, чтобы маршрут был виден между стен,
+        # и чуть меньший distance_factor, чтобы лабиринт заполнял кадр.
+        aim_camera_at_bbox(
+            camera_obj,
+            scene_min,
+            scene_max,
+            direction=(0.6, -0.6, 1.6),
+            distance_factor=2.2,
+        )
 
     if args.output:
         render_to_png(args.output)
