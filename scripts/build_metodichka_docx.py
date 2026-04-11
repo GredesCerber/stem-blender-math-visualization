@@ -237,28 +237,38 @@ def note_box(doc: Document, text: str, prefix: str = "📌 Примечание"
     r2.font.color.rgb = RGBColor(0x4A, 0x3C, 0x00)
 
 
-def embed_image(doc: Document, rel_path: str, caption: str, width_cm: float = 15.0) -> None:
-    """Встраивает картинку по центру с курсивной подписью под ней."""
-    abs_path = os.path.join(PROJECT_ROOT, rel_path)
-    if not os.path.exists(abs_path):
-        note_box(doc, f"⚠ Отсутствует файл изображения: {rel_path}",
-                 prefix="Предупреждение")
-        return
+def screenshot_placeholder(doc: Document, rel_path: str, caption: str) -> None:
+    """Вставляет место для скриншота: рамка с подсказкой о том, какую картинку
+    сюда нужно вручную добавить. Картинка не встраивается — пользователь
+    вставит её сам в DOCX-редакторе.
+    """
+    para = doc.add_paragraph()
+    para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    para.paragraph_format.space_before = Pt(12)
+    para.paragraph_format.space_after = Pt(2)
+    pPr = para._p.get_or_add_pPr()
+    shd = OxmlElement("w:shd")
+    shd.set(qn("w:val"), "clear")
+    shd.set(qn("w:color"), "auto")
+    shd.set(qn("w:fill"), "E8F4FF")
+    pPr.append(shd)
 
-    img_para = doc.add_paragraph()
-    img_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    img_para.paragraph_format.space_before = Pt(12)
-    img_para.paragraph_format.space_after = Pt(2)
-    run_img = img_para.add_run()
-    run_img.add_picture(abs_path, width=Cm(width_cm))
+    r1 = para.add_run("📸  МЕСТО ДЛЯ КАРТИНКИ\n")
+    r1.bold = True
+    r1.font.size = Pt(11)
+    r1.font.color.rgb = RGBColor(0x0D, 0x47, 0xA1)
 
-    cap = doc.add_paragraph()
-    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cap.paragraph_format.space_after = Pt(12)
-    cr = cap.add_run(caption)
-    cr.italic = True
-    cr.font.size = Pt(9)
-    cr.font.color.rgb = RGBColor(0x55, 0x66, 0x88)
+    r2 = para.add_run(f"Вставить файл: {rel_path}\n")
+    r2.font.size = Pt(9)
+    r2.font.color.rgb = RGBColor(0x1A, 0x5C, 0xAA)
+
+    r3 = para.add_run(caption)
+    r3.italic = True
+    r3.font.size = Pt(9)
+    r3.font.color.rgb = RGBColor(0x55, 0x66, 0x88)
+
+    spacer = doc.add_paragraph()
+    spacer.paragraph_format.space_after = Pt(10)
 
 
 # ────────────────────────────────────────────────────────────
@@ -440,7 +450,7 @@ def build_intro(doc: Document) -> None:
 def build_act1(doc: Document) -> None:
     h1(doc, "Акт 1. Формула становится формой")
 
-    embed_image(doc,
+    screenshot_placeholder(doc,
                 "assets/renders/wave_A1_k1.png",
                 "Поверхность z = sin(x) · cos(y) в 3D. Цвет — по высоте: "
                 "синий внизу, красный наверху.")
@@ -521,7 +531,7 @@ def build_act1(doc: Document) -> None:
 def build_act2(doc: Document) -> None:
     h1(doc, "Акт 2. Лабиринт как мир из кубиков")
 
-    embed_image(doc,
+    screenshot_placeholder(doc,
                 "assets/renders/labyrinth_cubes.png",
                 "Лабиринт 15×15, сгенерированный случайно. "
                 "Каждая стена — один куб в Blender-сцене.")
@@ -598,7 +608,7 @@ def build_act2(doc: Document) -> None:
 def build_act3(doc: Document) -> None:
     h1(doc, "Акт 3. Компьютер ищет выход")
 
-    embed_image(doc,
+    screenshot_placeholder(doc,
                 "assets/renders/labyrinth_solved.png",
                 "Тот же лабиринт. Алгоритм A* за долю секунды нашёл "
                 "кратчайший путь от зелёной точки к жёлтой. "
