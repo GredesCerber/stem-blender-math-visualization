@@ -136,6 +136,17 @@ blender --background --python scripts/pathfinding/visualize_path_in_blender.py -
 blender --background --python scripts/pathfinding/visualize_path_in_blender.py -- --function wave --algorithm dijkstra --obstacle-circle 0,0,1.5 --start-x -4 --start-y -4 --goal-x 4 --goal-y 4 --output assets/renders/path_wave_obstacle_dijkstra.png
 ```
 
+## Лабиринт: тот же движок на 2D
+
+Модуль `scripts/pathfinding/labyrinth.py` генерирует идеальный лабиринт с фиксированным seed и ищет по нему путь тем же A\*/Dijkstra, что и на 3D-поверхности — через общий 2D-массив (`0` = свободно, `1` = стена).
+
+```bash
+python -c "import sys; sys.path.insert(0,'scripts'); from pathfinding.labyrinth import generate_maze, find_path_in_maze, maze_start_goal, print_maze; m=generate_maze(21,21,seed=42); s,g=maze_start_goal(m); r=find_path_in_maze(m,s,g); print_maze(m, path=r.path, start=s, goal=g)"
+```
+
+Полный гайд: [`docs/10_labyrinth_pathfinding.md`](docs/10_labyrinth_pathfinding.md).
+Рабочий лист студента: [`docs/student_exercises.md`](docs/student_exercises.md).
+
 ## Тесты (без Blender)
 
 Если установлен Python:
