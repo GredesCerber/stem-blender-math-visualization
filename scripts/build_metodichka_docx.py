@@ -408,6 +408,7 @@ def build_toc(doc: Document) -> None:
         ("Глава 7.", "Эксперименты и таблицы результатов"),
         ("Глава 8.", "Задания для самостоятельной работы"),
         ("Глава 9.", "Оформление результата: отчёт и презентация"),
+        ("Глава 10.", "Лабиринт: один и тот же движок на 2D"),
         ("Приложение А.", "Типичные ошибки и их решения"),
         ("Приложение Б.", "Глоссарий терминов"),
     ]
@@ -1296,6 +1297,244 @@ def build_ch9(doc: Document) -> None:
 
 
 # ────────────────────────────────────────────────────────────
+# Глава 10 — Лабиринт: единый движок поиска на 2D
+# ────────────────────────────────────────────────────────────
+
+def build_ch10(doc: Document) -> None:
+    h1(doc, "Глава 10. Лабиринт: один и тот же движок на 2D")
+
+    body(doc,
+        "В главе 6 мы искали путь на 3D-поверхности z = f(x, y). Теперь покажем, "
+        "что тот же самый движок (TerrainGraph + A* / Dijkstra) работает и на плоском "
+        "лабиринте — без единой строчки изменений в самих алгоритмах. Ключевая идея: "
+        "у рельефа и у лабиринта общий формат данных — 2D-массив ячеек.",
+        bold_parts=["тот же самый движок", "общий формат данных"])
+
+    h2(doc, "10.1 Идея и формат данных")
+    body(doc,
+        "И рельеф, и лабиринт сводятся к матрице H[rows][cols]. В рельефе в ячейках "
+        "лежит высота z; в лабиринте — только два значения:")
+    bullet(doc, "0 — свободная ячейка (проход)")
+    bullet(doc, "1 — стена")
+    body(doc,
+        "Функция maze_to_terrain_graph превращает эту матрицу в плоский TerrainGraph "
+        "(z = 0 во всех точках) и помечает стены как blocked=True. Дальше — обычный "
+        "вызов a_star или dijkstra из модуля pathfinding.search.")
+
+    note_box(doc,
+        "Важный педагогический момент: студенты видят, что алгоритмы поиска пути "
+        "НЕ знают ни про рельеф, ни про лабиринт. Они работают с абстрактным графом. "
+        "Меняется только способ построения графа — сама логика A* и Dijkstra остаётся.",
+        prefix="📌 Для преподавателя")
+
+    h2(doc, "10.2 Генерация лабиринта (DFS с откатом)")
+    body(doc,
+        "Используем классический алгоритм «рекурсивного обхода» (recursive backtracking), "
+        "реализованный итеративно через стек — чтобы не упираться в лимит рекурсии "
+        "Python на больших лабиринтах. Для воспроизводимости принимаем параметр seed: "
+        "одинаковый seed → одинаковый лабиринт.")
+
+    code_block(doc, [
+        "def generate_maze(rows: int, cols: int, seed: int | None = None) -> MazeGrid:",
+        "    # Чётные размеры округляем до нечётных — чтобы корректно легли стены.",
+        "    if rows % 2 == 0: rows += 1",
+        "    if cols % 2 == 0: cols += 1",
+        "",
+        "    rng = random.Random(seed)",
+        "    maze = [[WALL for _ in range(cols)] for _ in range(rows)]",
+        "",
+        "    # Стартуем с (1, 1), прорубаем по 2 клетки за шаг.",
+        "    stack = [(1, 1)]",
+        "    maze[1][1] = FREE",
+        "    while stack:",
+        "        r, c = stack[-1]",
+        "        neighbours = []",
+        "        for dr, dc in ((-2, 0), (2, 0), (0, -2), (0, 2)):",
+        "            nr, nc = r + dr, c + dc",
+        "            if 0 < nr < rows - 1 and 0 < nc < cols - 1 and maze[nr][nc] == WALL:",
+        "                neighbours.append((nr, nc, dr, dc))",
+        "        if not neighbours:",
+        "            stack.pop()",
+        "            continue",
+        "        nr, nc, dr, dc = rng.choice(neighbours)",
+        "        maze[r + dr // 2][c + dc // 2] = FREE  # пробиваем стену между клетками",
+        "        maze[nr][nc] = FREE",
+        "        stack.append((nr, nc))",
+        "    return maze",
+    ], caption="scripts/pathfinding/labyrinth.py — generate_maze")
+
+    body(doc,
+        "Результат: «идеальный» лабиринт — между любыми двумя клетками существует "
+        "ровно один путь, циклов нет. Это ключевое свойство, на котором строится "
+        "сравнение A* и Dijkstra в §10.7.")
+
+    h2(doc, "10.3 Перенос лабиринта в TerrainGraph")
+    body(doc,
+        "TerrainGraph уже умеет работать с заблокированными ячейками. Нам осталось "
+        "только заполнить массив высот нулями и пробросить маску стен:")
+
+    code_block(doc, [
+        "def maze_to_terrain_graph(maze: MazeGrid, *, cell_size: float = 1.0,",
+        "                          connectivity: int = 4) -> TerrainGraph:",
+        "    rows = len(maze)",
+        "    cols = len(maze[0])",
+        "    heights = [[0.0] * cols for _ in range(rows)]",
+        "    blocked = [[cell == WALL for cell in row] for row in maze]",
+        "    return TerrainGraph(",
+        "        heights=heights,",
+        "        cell_size=cell_size,",
+        "        connectivity=connectivity,  # 4 — без диагоналей, как принято в лабиринтах",
+        "        blocked=blocked,",
+        "    )",
+    ], caption="scripts/pathfinding/labyrinth.py — maze_to_terrain_graph")
+
+    h2(doc, "10.4 Поиск пути")
+    body(doc,
+        "Тонкая обёртка — строит граф и вызывает нужный алгоритм. Возвращает штатный "
+        "SearchResult из pathfinding.search, то есть path, visited_nodes, cost — "
+        "абсолютно так же, как и для рельефа.")
+
+    code_block(doc, [
+        "def find_path_in_maze(maze, start, goal, *, algorithm: str = \"astar\",",
+        "                      cell_size: float = 1.0, connectivity: int = 4,",
+        "                      weights: Weights | None = None) -> SearchResult:",
+        "    graph = maze_to_terrain_graph(maze, cell_size=cell_size,",
+        "                                  connectivity=connectivity)",
+        "    weights = weights or Weights(w_length=1.0, w_slope=0.0, w_risk=0.0)",
+        "    if algorithm == \"astar\":",
+        "        return a_star(graph, start, goal, weights=weights)",
+        "    if algorithm == \"dijkstra\":",
+        "        return dijkstra(graph, start, goal, weights=weights)",
+        "    raise ValueError(f\"Неизвестный алгоритм: {algorithm}\")",
+    ], caption="scripts/pathfinding/labyrinth.py — find_path_in_maze")
+
+    h2(doc, "10.5 ASCII-визуализация")
+    body(doc,
+        "Перед тем, как строить сцену в Blender, удобно посмотреть результат прямо "
+        "в терминале. Функция print_maze рендерит лабиринт и путь через Unicode-символы:")
+
+    code_block(doc, [
+        "import sys; sys.path.insert(0, \"scripts\")",
+        "from pathfinding.labyrinth import (",
+        "    generate_maze, find_path_in_maze, maze_start_goal, print_maze,",
+        ")",
+        "",
+        "maze = generate_maze(rows=21, cols=21, seed=42)",
+        "start, goal = maze_start_goal(maze)",
+        "result = find_path_in_maze(maze, start, goal, algorithm=\"astar\")",
+        "print(f\"Путь: {len(result.path)} ячеек, посещено {result.visited_nodes}\")",
+        "print_maze(maze, path=result.path, start=start, goal=goal)",
+    ], caption="Минимальный запуск без Blender")
+
+    body(doc,
+        "Повторный запуск с тем же seed=42 даст ровно тот же лабиринт и тот же путь — "
+        "это требование воспроизводимости из ТЗ проекта (§12.5 AI_AGENT_HANDOFF).")
+
+    h2(doc, "10.6 Сцена в Blender")
+    body(doc,
+        "Скрипт scripts/pathfinding/visualize_labyrinth_in_blender.py собирает сцену "
+        "из четырёх типов объектов:")
+    numbered(doc, "Плоский пол — Plane размером rows×cols")
+    numbered(doc, "Стены — один объединённый mesh со всеми кубиками (быстро, меньше объектов в сцене)")
+    numbered(doc, "Маршрут — Curve с эмиссионным материалом (светится)")
+    numbered(doc, "Маркеры START/GOAL — сферы зелёного и жёлтого цвета")
+
+    body(doc,
+        "Ключевой фрагмент — построение меша стен. Вместо сотни отдельных кубиков "
+        "мы собираем все вершины и грани в один массив и вызываем mesh.from_pydata() "
+        "один раз. На лабиринте 41×41 это быстрее в десятки раз:")
+
+    code_block(doc, [
+        "def build_walls_mesh(maze, *, cell_size: float, wall_height: float):",
+        "    verts, faces = [], []",
+        "    for r, row in enumerate(maze):",
+        "        for c, cell in enumerate(row):",
+        "            if cell != WALL:",
+        "                continue",
+        "            x = (c - len(row) / 2) * cell_size",
+        "            y = (r - len(maze) / 2) * cell_size",
+        "            base = len(verts)",
+        "            # 8 вершин кубика",
+        "            for dx in (0, cell_size):",
+        "                for dy in (0, cell_size):",
+        "                    for dz in (0, wall_height):",
+        "                        verts.append((x + dx, y + dy, dz))",
+        "            # 6 граней (по 4 вершины)",
+        "            faces.extend([",
+        "                (base+0, base+1, base+3, base+2),  # нижняя",
+        "                (base+4, base+6, base+7, base+5),  # верхняя",
+        "                (base+0, base+4, base+5, base+1),  # передняя",
+        "                (base+2, base+3, base+7, base+6),  # задняя",
+        "                (base+0, base+2, base+6, base+4),  # левая",
+        "                (base+1, base+5, base+7, base+3),  # правая",
+        "            ])",
+        "    mesh = bpy.data.meshes.new(\"MazeWalls\")",
+        "    mesh.from_pydata(verts, [], faces)",
+        "    mesh.update()",
+        "    return bpy.data.objects.new(\"MazeWalls\", mesh)",
+    ], caption="scripts/pathfinding/visualize_labyrinth_in_blender.py — build_walls_mesh")
+
+    body(doc, "Запуск в headless-режиме:")
+    code_block(doc, [
+        "blender --background --python scripts/pathfinding/visualize_labyrinth_in_blender.py -- \\",
+        "    --rows 21 --cols 21 --seed 42 --algorithm astar \\",
+        "    --output assets/renders/labyrinth_21_astar.png",
+    ])
+
+    h2(doc, "10.7 A* vs Dijkstra на идеальном лабиринте")
+    body(doc,
+        "В идеальном лабиринте между двумя клетками существует ровно один путь, "
+        "поэтому длина маршрута у A* и Dijkstra совпадает — этот факт закреплён "
+        "тестом test_astar_and_dijkstra_same_length_on_perfect_maze. Разница "
+        "проявляется в числе посещённых узлов: эвристика A* направляет поиск "
+        "в сторону цели, Dijkstra же разворачивает волну во все стороны.",
+        bold_parts=["длина маршрута у A* и Dijkstra совпадает", "числе посещённых узлов"])
+
+    add_table(doc,
+        headers=["Размер", "seed", "Длина пути", "A* посетил", "Dijkstra посетил"],
+        rows=[
+            ["21×21",  "42",  "101", "125", "135"],
+            ["25×25",  "7",   "129", "168", "189"],
+            ["31×31",  "123", "189", "241", "278"],
+        ],
+        col_widths=[3.0, 2.0, 3.5, 3.5, 3.5],
+    )
+
+    body(doc,
+        "Наблюдение: в лабиринте без циклов выигрыш A* скромный (10–20% по visited_nodes), "
+        "потому что эвристика часто упирается в стену и приходится откатываться. "
+        "Если «пробить» часть стен и добавить циклы — A* начнёт выигрывать сильнее. "
+        "Это материал для проекта C из рабочего листа студента (docs/student_exercises.md).")
+
+    h2(doc, "10.8 Тесты")
+    body(doc,
+        "Модуль покрыт 14 тестами в tests/test_labyrinth.py. Они не требуют Blender "
+        "и запускаются одной командой:")
+    code_block(doc, ["python -m unittest tests.test_labyrinth -v"])
+
+    add_table(doc,
+        headers=["Группа", "Что проверяется"],
+        rows=[
+            ["Генерация",  "Воспроизводимость seed, чётные→нечётные размеры, границы всегда стены"],
+            ["Формат",     "В ячейках только 0/1, start и goal всегда свободны"],
+            ["Поиск",      "A* и Dijkstra находят путь, path идёт только по свободным клеткам"],
+            ["Смежность",  "Каждый следующий шаг пути — сосед предыдущего (4-связность)"],
+            ["Эквивалентность", "На идеальном лабиринте длина пути A* = длина пути Dijkstra"],
+            ["Конвертация", "maze_path_to_scene_points даёт координаты с правильным шагом cell_size"],
+        ],
+        col_widths=[4.0, 12.0],
+    )
+
+    h2(doc, "10.9 Что дальше")
+    bullet(doc, "Добавить «дорогие» ячейки (не стены, а высокая стоимость) и показать, как w_risk влияет на маршрут.")
+    bullet(doc, "Сгенерировать лабиринт с циклами (убрать часть стен после DFS) — и показать, что A* начнёт заметно выигрывать по visited_nodes.")
+    bullet(doc, "Анимация пошагового поиска: сохранять visited_nodes на каждом шаге и запекать keyframes в Blender.")
+    bullet(doc, "Скрестить лабиринт и рельеф: пустить путь по лабиринту, у которого стены — холмы на поверхности z=f(x,y).")
+
+    doc.add_page_break()
+
+
+# ────────────────────────────────────────────────────────────
 # Приложение А — Типичные ошибки
 # ────────────────────────────────────────────────────────────
 
@@ -1450,6 +1689,7 @@ def build_docx() -> None:
     build_ch7(doc)
     build_ch8(doc)
     build_ch9(doc)
+    build_ch10(doc)
     build_appendix_a(doc)
     build_appendix_b(doc)
 
