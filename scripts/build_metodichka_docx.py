@@ -25,6 +25,7 @@ from docx.oxml import OxmlElement
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 OUTPUT_PATH = os.path.join(PROJECT_ROOT, "docs", "metodichka", "Методичка_подробная.docx")
+TITLE_IMAGE_PATH = os.path.join(PROJECT_ROOT, "assets", "metodichka", "title_image.png")
 
 
 # ────────────────────────────────────────────────────────────
@@ -339,6 +340,28 @@ def add_table(
     doc.add_paragraph().paragraph_format.space_after = Pt(6)
 
 
+def embed_full_listing(doc: Document, rel_path: str) -> None:
+    """Читает файл из scripts/ и вставляет его как кодовый блок с подзаголовком.
+
+    Цель — гарантировать, что DOCX-методичка всегда синхронна с реальным кодом:
+    листинг не пишется в коде генератора, а подтягивается из файла при сборке.
+    """
+    abs_path = os.path.join(PROJECT_ROOT, rel_path)
+    with open(abs_path, "r", encoding="utf-8") as handle:
+        source = handle.read().rstrip()
+
+    h3(doc, f"Файл  {rel_path}")
+    body_plain(doc,
+        f"Сохрани содержимое ниже в файл {rel_path}. Фрагменты, которые разбираются "
+        "далее в главе построчно, — это те же строки, вынесенные для объяснения.")
+    code_block(doc, source.splitlines())
+
+
+def embed_chapter_listings_intro(doc: Document, intro_text: str) -> None:
+    """Вводный параграф перед полными листингами главы."""
+    note_box(doc, intro_text, prefix="📜 Полные листинги")
+
+
 # ────────────────────────────────────────────────────────────
 # Титульная страница
 # ────────────────────────────────────────────────────────────
@@ -386,7 +409,23 @@ def build_title_page(doc: Document) -> None:
         r.bold = bold
         r.font.size = Pt(size)
 
-    doc.add_paragraph().paragraph_format.space_after = Pt(60)
+    # Титульная иллюстрация — Blender со сценой FunctionVisualizer
+    if os.path.exists(TITLE_IMAGE_PATH):
+        img_para = doc.add_paragraph()
+        img_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        img_para.paragraph_format.space_before = Pt(12)
+        img_para.paragraph_format.space_after = Pt(6)
+        run_img = img_para.add_run()
+        run_img.add_picture(TITLE_IMAGE_PATH, width=Cm(15.0))
+
+        cap = doc.add_paragraph()
+        cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cr = cap.add_run("Blender со скриптом FunctionVisualizer — волновая поверхность в 3D Viewport")
+        cr.italic = True
+        cr.font.size = Pt(9)
+        cr.font.color.rgb = RGBColor(0x55, 0x66, 0x88)
+
+    doc.add_paragraph().paragraph_format.space_after = Pt(40)
     doc.add_page_break()
 
 
@@ -603,6 +642,13 @@ def build_ch2(doc: Document) -> None:
 def build_ch3(doc: Document) -> None:
     h1(doc, "Глава 3. Разбор function_library.py")
 
+    h2(doc, "3.0 Полный листинг")
+    embed_chapter_listings_intro(doc,
+        "Ниже — полный исходный код модуля function_library.py. "
+        "Сохрани его по указанному пути. В последующих разделах главы отдельные "
+        "фрагменты разбираются построчно, но сначала рекомендуется просто ввести код целиком.")
+    embed_full_listing(doc, "scripts/function_library.py")
+
     h2(doc, "3.1 Зачем отдельный модуль?")
     body(doc,
         "Без function_library.py каждый скрипт содержал бы свою копию формул, "
@@ -737,6 +783,14 @@ def build_ch3(doc: Document) -> None:
 def build_ch4(doc: Document) -> None:
     h1(doc, "Глава 4. Разбор visualize_function.py")
 
+    h2(doc, "4.0 Полные листинги")
+    embed_chapter_listings_intro(doc,
+        "В главе два файла: основной visualize_function.py (рендер поверхности) "
+        "и вспомогательный enhanced_camera_utils.py (камера и свет). "
+        "Сохрани оба — второй импортируется первым.")
+    embed_full_listing(doc, "scripts/visualize_function.py")
+    embed_full_listing(doc, "scripts/enhanced_camera_utils.py")
+
     h2(doc, "4.1 Структура скрипта")
     code_block(doc, [
         "# 1. Импорт из function_library",
@@ -833,6 +887,14 @@ def build_ch4(doc: Document) -> None:
 def build_ch5(doc: Document) -> None:
     h1(doc, "Глава 5. Geometry Nodes: интерактивная математика")
 
+    h2(doc, "5.0 Полные листинги")
+    embed_chapter_listings_intro(doc,
+        "Для этой главы понадобятся два файла: setup_geometry_nodes_surface.py "
+        "(создаёт нод-группу и модификатор в Blender) и generate_surface_mesh.py "
+        "(базовая утилита построения сетки, которую использует несколько скриптов).")
+    embed_full_listing(doc, "scripts/setup_geometry_nodes_surface.py")
+    embed_full_listing(doc, "scripts/generate_surface_mesh.py")
+
     h2(doc, "5.1 Что такое Geometry Nodes?")
     body(doc,
         "Geometry Nodes (GN) — система в Blender, где вместо написания кода "
@@ -899,6 +961,18 @@ def build_ch5(doc: Document) -> None:
 
 def build_ch6(doc: Document) -> None:
     h1(doc, "Глава 6. Поиск пути на поверхности (A* / Dijkstra)")
+
+    h2(doc, "6.0 Полные листинги")
+    embed_chapter_listings_intro(doc,
+        "Модуль pathfinding состоит из пяти файлов. __init__.py — точка входа; "
+        "cost_functions.py — веса рёбер (длина, уклон, риск); terrain_graph.py — "
+        "построение графа из поверхности; search.py — реализации A* и Dijkstra; "
+        "visualize_path_in_blender.py — рендер маршрута поверх поверхности.")
+    embed_full_listing(doc, "scripts/pathfinding/__init__.py")
+    embed_full_listing(doc, "scripts/pathfinding/cost_functions.py")
+    embed_full_listing(doc, "scripts/pathfinding/terrain_graph.py")
+    embed_full_listing(doc, "scripts/pathfinding/search.py")
+    embed_full_listing(doc, "scripts/pathfinding/visualize_path_in_blender.py")
 
     h2(doc, "6.1 Постановка задачи")
     body(doc,
@@ -1302,6 +1376,13 @@ def build_ch9(doc: Document) -> None:
 
 def build_ch10(doc: Document) -> None:
     h1(doc, "Глава 10. Лабиринт: один и тот же движок на 2D")
+
+    h2(doc, "10.0 Полные листинги")
+    embed_chapter_listings_intro(doc,
+        "Два файла: labyrinth.py — генерация и поиск по лабиринту, "
+        "visualize_labyrinth_in_blender.py — сцена в Blender.")
+    embed_full_listing(doc, "scripts/pathfinding/labyrinth.py")
+    embed_full_listing(doc, "scripts/pathfinding/visualize_labyrinth_in_blender.py")
 
     body(doc,
         "В главе 6 мы искали путь на 3D-поверхности z = f(x, y). Теперь покажем, "
